@@ -107,6 +107,49 @@ export function addCommentToArticle(articleId: string, comment: Omit<Comment, 'i
   return newComment;
 }
 
+export function updateComment(
+  articleId: string,
+  commentId: string,
+  updatedFields: Partial<Comment>
+): boolean {
+  const articles = getStoredArticles();
+  const article = articles.find((a) => a.id === articleId);
+  if (!article || !article.comments) return false;
+
+  const commentIndex = article.comments.findIndex((c) => c.id === commentId);
+  if (commentIndex === -1) return false;
+
+  article.comments[commentIndex] = {
+    ...article.comments[commentIndex],
+    ...updatedFields,
+    id: article.comments[commentIndex].id, // preserve id
+  };
+
+  updateArticle(articleId, { comments: [...article.comments] });
+  return true;
+}
+
+export function deleteComment(articleId: string, commentId: string): boolean {
+  const articles = getStoredArticles();
+  const article = articles.find((a) => a.id === articleId);
+  if (!article || !article.comments) return false;
+
+  const filteredComments = article.comments.filter((c) => c.id !== commentId);
+  updateArticle(articleId, { comments: filteredComments });
+  return true;
+}
+
+export function toggleCommentVisibility(articleId: string, commentId: string): boolean {
+  const articles = getStoredArticles();
+  const article = articles.find((a) => a.id === articleId);
+  if (!article || !article.comments) return false;
+
+  const comment = article.comments.find((c) => c.id === commentId);
+  if (!comment) return false;
+
+  return updateComment(articleId, commentId, { hidden: !comment.hidden });
+}
+
 export function incrementArticleViews(articleId: string): void {
   const articles = getStoredArticles();
   const article = articles.find((a) => a.id === articleId);

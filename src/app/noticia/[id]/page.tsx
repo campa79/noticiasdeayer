@@ -283,34 +283,41 @@ export default function ArticleDetailPage() {
 
           {/* Comments Section */}
           <section className="pt-10 border-t border-[#eeeeee]">
-            <h3 className="font-headline text-xl font-bold mb-6 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-[#111111]" />
-              Comentarios ({article.comments?.length || 0})
-            </h3>
+            {(() => {
+              const visibleComments = (article.comments || []).filter((c) => !c.hidden);
+              return (
+                <>
+                  <h3 className="font-headline text-xl font-bold mb-6 flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-[#111111]" />
+                    Comentarios ({visibleComments.length})
+                  </h3>
 
-            {/* Comments List */}
-            <div className="space-y-4 mb-8">
-              {article.comments && article.comments.length > 0 ? (
-                article.comments.map((comment) => (
-                  <div
-                    key={comment.id}
-                    className="bg-[#fafafa] border border-[#f0f0f0] p-4 rounded-xs"
-                  >
-                    <div className="flex items-center justify-between text-xs font-body text-[#888888] mb-1.5">
-                      <strong className="text-[#111111] font-medium">{comment.author}</strong>
-                      <span>{comment.date}</span>
-                    </div>
-                    <p className="font-body text-sm text-[#444444] italic">
-                      «{comment.text}»
-                    </p>
+                  {/* Comments List */}
+                  <div className="space-y-4 mb-8">
+                    {visibleComments.length > 0 ? (
+                      visibleComments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className="bg-[#fafafa] border border-[#f0f0f0] p-4 rounded-xs"
+                        >
+                          <div className="flex items-center justify-between text-xs font-body text-[#888888] mb-1.5">
+                            <strong className="text-[#111111] font-medium">{comment.author}</strong>
+                            <span>{comment.date}</span>
+                          </div>
+                          <p className="font-body text-sm text-[#444444] italic">
+                            «{comment.text}»
+                          </p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs font-body italic text-[#888888]">
+                        No hay comentarios aún.
+                      </p>
+                    )}
                   </div>
-                ))
-              ) : (
-                <p className="text-xs font-body italic text-[#888888]">
-                  No hay comentarios aún.
-                </p>
-              )}
-            </div>
+                </>
+              );
+            })()}
 
             {/* Comment Form */}
             <form onSubmit={handleCommentSubmit} className="space-y-3">

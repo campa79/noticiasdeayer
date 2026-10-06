@@ -10,6 +10,7 @@ export interface Comment {
   city?: string;
   date: string;
   text: string;
+  hidden?: boolean; // Si es true, el comentario queda oculto para los lectores públicos
 }
 
 export interface Article {

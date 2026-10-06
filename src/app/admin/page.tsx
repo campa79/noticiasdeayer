@@ -9,6 +9,7 @@ import {
   Pencil,
   Trash2,
   Eye,
+  EyeOff,
   Camera,
   X,
   ArrowLeft,
@@ -26,9 +27,11 @@ import {
   FileText,
   Users,
   Activity,
-  Layers,
+  MessageSquare,
+  Check,
+  CheckCircle2,
 } from 'lucide-react';
-import { Article, GalleryImage } from '../../types/blog';
+import { Article, GalleryImage, Comment } from '../../types/blog';
 import {
   getStoredArticles,
   createArticle,
@@ -37,13 +40,14 @@ import {
   checkAdminSession,
   setAdminSession,
   saveArticles,
+  updateComment,
+  deleteComment,
+  toggleCommentVisibility,
 } from '../../lib/storage';
 import {
   getAnalyticsSummary,
   AnalyticsSummary,
   getStoredVisits,
-  clearAnalyticsLogs,
-  VisitLog,
 } from '../../lib/analytics';
 
 export default function AdminPage() {
@@ -63,6 +67,13 @@ export default function AdminPage() {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Comments Moderation Modal State
+  const [commentsModalArticle, setCommentsModalArticle] = useState<Article | null>(null);
+  const [editingComment, setEditingComment] = useState<{
+    articleId: string;
+    comment: Comment;
+  } | null>(null);
 
   // Form fields
   const [title, setTitle] = useState('');
@@ -89,8 +100,14 @@ export default function AdminPage() {
   };
 
   const loadData = () => {
-    setArticles(getStoredArticles());
+    const loadedArticles = getStoredArticles();
+    setArticles(loadedArticles);
     setAnalytics(getAnalyticsSummary());
+
+    if (commentsModalArticle) {
+      const refreshed = loadedArticles.find((a) => a.id === commentsModalArticle.id);
+      if (refreshed) setCommentsModalArticle(refreshed);
+    }
   };
 
   useEffect(() => {
@@ -181,6 +198,8 @@ export default function AdminPage() {
       .map((t) => t.trim())
       .filter((t) => t.length > 0);
 
+    const existingArticle = editingArticleId ? articles.find((a) => a.id === editingArticleId) : null;
+
     const articleData = {
       title: title.trim(),
       subtitle: subtitle.trim() || undefined,
@@ -199,6 +218,7 @@ export default function AdminPage() {
       tags,
       featured,
       readTimeMinutes: 4,
+      comments: existingArticle?.comments || [],
       slug: title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
     };
 
@@ -221,6 +241,34 @@ export default function AdminPage() {
     loadData();
     setDeleteConfirmId(null);
     showToast('Artículo eliminado.');
+  };
+
+  // Comments Moderation Handlers
+  const handleToggleCommentVisibility = (articleId: string, commentId: string) => {
+    toggleCommentVisibility(articleId, commentId);
+    loadData();
+    showToast('Estado de visibilidad del comentario actualizado.');
+  };
+
+  const handleDeleteComment = (articleId: string, commentId: string) => {
+    if (confirm('¿Eliminar permanentemente este comentario?')) {
+      deleteComment(articleId, commentId);
+      loadData();
+      showToast('Comentario eliminado.');
+    }
+  };
+
+  const handleSaveEditedComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingComment) return;
+    updateComment(editingComment.articleId, editingComment.comment.id, {
+      author: editingComment.comment.author,
+      city: editingComment.comment.city,
+      text: editingComment.comment.text,
+    });
+    setEditingComment(null);
+    loadData();
+    showToast('Comentario editado con éxito.');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
@@ -386,7 +434,7 @@ export default function AdminPage() {
             <span className="text-xs text-[#888888]">• Admin</span>
           </div>
 
-          {/* Navigation Tabs between Articles & Analytics */}
+          {/* Navigation Tabs */}
           <div className="flex items-center gap-2 bg-[#f6f6f6] p-1 rounded-xs text-xs font-medium">
             <button
               onClick={() => {
@@ -716,7 +764,7 @@ export default function AdminPage() {
                 </div>
               </form>
             ) : (
-              /* Table */
+              /* Articles Table */
               <div className="bg-white border border-[#eeeeee] overflow-hidden">
                 <div className="p-3 border-b border-[#eeeeee] flex flex-wrap items-center justify-between gap-3 text-xs">
                   <div className="flex items-center bg-[#fafafa] border border-[#e5e5e5] rounded-xs px-2.5 py-1 w-full sm:w-64">
@@ -751,55 +799,83 @@ export default function AdminPage() {
                         <th className="p-3 w-16">Foto</th>
                         <th className="p-3">Título</th>
                         <th className="p-3">Categoría</th>
+                        <th className="p-3">Comentarios</th>
                         <th className="p-3">Autor</th>
                         <th className="p-3 text-right">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#eeeeee]">
-                      {filteredList.map((art) => (
-                        <tr key={art.id} className="hover:bg-[#fafafa] transition-colors">
-                          <td className="p-3">
-                            <img src={art.coverImage} alt="" className="w-12 h-9 object-cover rounded-xs" />
-                          </td>
-                          <td className="p-3">
-                            <strong className="font-headline text-sm font-semibold text-[#111111] line-clamp-1">
-                              {art.title}
-                            </strong>
-                            <p className="text-[11px] text-[#777777] line-clamp-1 italic">
-                              {art.copete}
-                            </p>
-                          </td>
-                          <td className="p-3 text-[#555555] whitespace-nowrap">
-                            {art.category}
-                          </td>
-                          <td className="p-3 text-[#555555] whitespace-nowrap">
-                            {art.author}
-                          </td>
-                          <td className="p-3 text-right whitespace-nowrap">
-                            <div className="inline-flex items-center gap-1.5">
-                              <Link
-                                href={`/noticia/${art.id}`}
-                                target="_blank"
-                                className="p-1 text-[#888888] hover:text-[#111111]"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                              </Link>
+                      {filteredList.map((art) => {
+                        const totalComments = art.comments?.length || 0;
+                        const hiddenComments = art.comments?.filter((c) => c.hidden).length || 0;
+                        return (
+                          <tr key={art.id} className="hover:bg-[#fafafa] transition-colors">
+                            <td className="p-3">
+                              <img src={art.coverImage} alt="" className="w-12 h-9 object-cover rounded-xs" />
+                            </td>
+                            <td className="p-3">
+                              <strong className="font-headline text-sm font-semibold text-[#111111] line-clamp-1">
+                                {art.title}
+                              </strong>
+                              <p className="text-[11px] text-[#777777] line-clamp-1 italic">
+                                {art.copete}
+                              </p>
+                            </td>
+                            <td className="p-3 text-[#555555] whitespace-nowrap">
+                              {art.category}
+                            </td>
+                            {/* Comments Count & Quick Moderation Button */}
+                            <td className="p-3 whitespace-nowrap">
                               <button
-                                onClick={() => startEditArticle(art)}
-                                className="p-1 text-[#888888] hover:text-[#111111]"
+                                onClick={() => setCommentsModalArticle(art)}
+                                className={`px-2 py-1 rounded text-xs flex items-center gap-1.5 transition-colors ${
+                                  totalComments > 0
+                                    ? 'bg-[#f0f0f0] hover:bg-[#111111] hover:text-white text-[#111111] font-medium'
+                                    : 'text-[#888888] hover:text-[#111111]'
+                                }`}
+                                title="Administrar comentarios de esta noticia"
                               >
-                                <Pencil className="w-3.5 h-3.5" />
+                                <MessageSquare className="w-3.5 h-3.5" />
+                                <span>{totalComments}</span>
+                                {hiddenComments > 0 && (
+                                  <span className="text-red-600 font-bold" title={`${hiddenComments} comentario(s) oculto(s)`}>
+                                    ({hiddenComments} ocultos)
+                                  </span>
+                                )}
                               </button>
-                              <button
-                                onClick={() => setDeleteConfirmId(art.id)}
-                                className="p-1 text-red-600 hover:text-red-800"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="p-3 text-[#555555] whitespace-nowrap">
+                              {art.author}
+                            </td>
+                            <td className="p-3 text-right whitespace-nowrap">
+                              <div className="inline-flex items-center gap-1.5">
+                                <Link
+                                  href={`/noticia/${art.id}`}
+                                  target="_blank"
+                                  className="p-1 text-[#888888] hover:text-[#111111]"
+                                  title="Ver en la web"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </Link>
+                                <button
+                                  onClick={() => startEditArticle(art)}
+                                  className="p-1 text-[#888888] hover:text-[#111111]"
+                                  title="Editar noticia"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirmId(art.id)}
+                                  className="p-1 text-red-600 hover:text-red-800"
+                                  title="Eliminar noticia"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
 
@@ -819,7 +895,6 @@ export default function AdminPage() {
         {/* ========================================================================= */}
         {activeTab === 'analytics' && analytics && (
           <div className="space-y-8">
-            {/* Top KPIs Summary */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="font-headline text-2xl font-bold">
@@ -834,7 +909,6 @@ export default function AdminPage() {
                 <button
                   onClick={loadData}
                   className="px-3 py-1.5 bg-[#fafafa] border border-[#e5e5e5] hover:bg-[#f0f0f0] text-xs text-[#555555] rounded-xs flex items-center gap-1.5 transition-colors"
-                  title="Actualizar datos"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Actualizar</span>
@@ -850,9 +924,8 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* KPI Cards Grid */}
+            {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Visitas Históricas Totales */}
               <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
                 <div className="flex items-center justify-between text-xs text-[#888888]">
                   <span className="uppercase tracking-wider font-semibold">Visitas Históricas</span>
@@ -866,7 +939,6 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              {/* Visitas de Hoy */}
               <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
                 <div className="flex items-center justify-between text-xs text-[#888888]">
                   <span className="uppercase tracking-wider font-semibold">Visitas de Hoy</span>
@@ -880,7 +952,6 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              {/* Visitas del Mes */}
               <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
                 <div className="flex items-center justify-between text-xs text-[#888888]">
                   <span className="uppercase tracking-wider font-semibold">Visitas del Mes</span>
@@ -894,7 +965,6 @@ export default function AdminPage() {
                 </p>
               </div>
 
-              {/* Visitantes Únicos */}
               <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
                 <div className="flex items-center justify-between text-xs text-[#888888]">
                   <span className="uppercase tracking-wider font-semibold">Visitantes Únicos</span>
@@ -909,7 +979,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Breakdown Grid: Países, Sistemas Operativos, Navegadores */}
+            {/* Breakdown Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Países */}
               <div className="bg-white border border-[#eeeeee] p-5 space-y-3">
@@ -996,7 +1066,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Registro Detallado de Últimas Visitas (Log con IP, SO, País, etc.) */}
+            {/* Visit Log Table */}
             <div className="bg-white border border-[#eeeeee] overflow-hidden space-y-0">
               <div className="p-4 border-b border-[#eeeeee] flex items-center justify-between">
                 <div>
@@ -1065,7 +1135,227 @@ export default function AdminPage() {
         )}
       </main>
 
-      {/* Delete modal */}
+      {/* ========================================================================= */}
+      {/* MODAL: ADMINISTRAR / MODERAR COMENTARIOS DE UNA NOTICIA */}
+      {/* ========================================================================= */}
+      {commentsModalArticle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-w-2xl w-full bg-white border border-[#eeeeee] p-6 space-y-4 max-h-[90vh] flex flex-col shadow-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-[#eeeeee]">
+              <div>
+                <h3 className="font-headline text-lg font-bold">
+                  Moderación de Comentarios
+                </h3>
+                <p className="text-xs text-[#888888] line-clamp-1">
+                  {commentsModalArticle.title}
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  setCommentsModalArticle(null);
+                  setEditingComment(null);
+                }}
+                className="p-1 text-[#888888] hover:text-[#111111]"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* List of Comments to moderate */}
+            <div className="grow overflow-y-auto space-y-3 pr-1">
+              {commentsModalArticle.comments && commentsModalArticle.comments.length > 0 ? (
+                commentsModalArticle.comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className={`p-4 border rounded-xs transition-colors ${
+                      comment.hidden
+                        ? 'bg-red-50/50 border-red-200'
+                        : 'bg-[#fafafa] border-[#eeeeee]'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <strong className="text-xs font-semibold text-[#111111]">
+                          {comment.author}
+                        </strong>
+                        {comment.city && (
+                          <span className="text-[11px] text-[#888888]">({comment.city})</span>
+                        )}
+                        <span className="text-[11px] text-[#888888]">• {comment.date}</span>
+                      </div>
+
+                      {/* Status Badge */}
+                      <span
+                        className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded ${
+                          comment.hidden
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-green-100 text-green-800'
+                        }`}
+                      >
+                        {comment.hidden ? 'Invisible (Oculto)' : 'Visible en la Web'}
+                      </span>
+                    </div>
+
+                    <p className="text-xs text-[#444444] italic mb-3 leading-relaxed">
+                      «{comment.text}»
+                    </p>
+
+                    {/* Comment Action Buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#eeeeee]/60 text-xs">
+                      <button
+                        onClick={() =>
+                          handleToggleCommentVisibility(commentsModalArticle.id, comment.id)
+                        }
+                        className={`px-2.5 py-1 rounded-xs flex items-center gap-1 font-medium transition-colors ${
+                          comment.hidden
+                            ? 'bg-green-700 hover:bg-green-800 text-white'
+                            : 'bg-[#eeeeee] hover:bg-[#e0e0e0] text-[#111111]'
+                        }`}
+                        title={comment.hidden ? 'Hacer visible públicamente' : 'Ocultar al público'}
+                      >
+                        {comment.hidden ? (
+                          <>
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Hacer Visible</span>
+                          </>
+                        ) : (
+                          <>
+                            <EyeOff className="w-3.5 h-3.5" />
+                            <span>Hacer Invisible</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          setEditingComment({
+                            articleId: commentsModalArticle.id,
+                            comment: { ...comment },
+                          })
+                        }
+                        className="px-2.5 py-1 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#111111] rounded-xs flex items-center gap-1"
+                        title="Modificar texto del comentario"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        <span>Editar</span>
+                      </button>
+
+                      <button
+                        onClick={() =>
+                          handleDeleteComment(commentsModalArticle.id, comment.id)
+                        }
+                        className="px-2 py-1 text-red-600 hover:bg-red-50 rounded-xs flex items-center gap-1"
+                        title="Eliminar permanentemente"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Borrar</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-8 text-center text-xs text-[#888888]">
+                  Esta crónica no tiene comentarios de lectores aún.
+                </div>
+              )}
+            </div>
+
+            {/* Edit Comment Inline Modal/Section */}
+            {editingComment && (
+              <form
+                onSubmit={handleSaveEditedComment}
+                className="p-4 bg-white border-2 border-[#111111] space-y-3"
+              >
+                <div className="flex items-center justify-between pb-2 border-b border-[#eeeeee]">
+                  <h4 className="text-xs font-bold uppercase tracking-wider">
+                    Modificar Comentario
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setEditingComment(null)}
+                    className="text-xs text-[#888888] hover:text-[#111111]"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Autor"
+                    value={editingComment.comment.author}
+                    onChange={(e) =>
+                      setEditingComment({
+                        ...editingComment,
+                        comment: { ...editingComment.comment, author: e.target.value },
+                      })
+                    }
+                    className="bg-[#fafafa] border border-[#e5e5e5] p-1.5 text-xs focus:outline-hidden"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Ciudad / Barrio"
+                    value={editingComment.comment.city || ''}
+                    onChange={(e) =>
+                      setEditingComment({
+                        ...editingComment,
+                        comment: { ...editingComment.comment, city: e.target.value },
+                      })
+                    }
+                    className="bg-[#fafafa] border border-[#e5e5e5] p-1.5 text-xs focus:outline-hidden"
+                  />
+                </div>
+
+                <textarea
+                  required
+                  rows={2}
+                  placeholder="Texto del comentario"
+                  value={editingComment.comment.text}
+                  onChange={(e) =>
+                    setEditingComment({
+                      ...editingComment,
+                      comment: { ...editingComment.comment, text: e.target.value },
+                    })
+                  }
+                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden"
+                />
+
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingComment(null)}
+                    className="px-3 py-1 bg-[#f0f0f0] text-xs rounded-xs"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-1 bg-[#111111] text-white text-xs rounded-xs font-medium"
+                  >
+                    Guardar Comentario
+                  </button>
+                </div>
+              </form>
+            )}
+
+            <div className="flex justify-end pt-2 border-t border-[#eeeeee]">
+              <button
+                onClick={() => {
+                  setCommentsModalArticle(null);
+                  setEditingComment(null);
+                }}
+                className="px-4 py-1.5 bg-[#111111] text-white text-xs font-medium rounded-xs"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Article Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <div className="max-w-sm w-full bg-white border border-[#eeeeee] p-6 space-y-4">
@@ -1073,7 +1363,7 @@ export default function AdminPage() {
               ¿Eliminar este artículo?
             </h3>
             <p className="text-xs text-[#666666]">
-              La noticia será retirada del blog.
+              La noticia y todos sus comentarios serán retirados del blog.
             </p>
             <div className="flex justify-end gap-2 text-xs">
               <button
