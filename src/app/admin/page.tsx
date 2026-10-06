@@ -16,6 +16,17 @@ import {
   Download,
   Search,
   ExternalLink,
+  BarChart3,
+  Globe,
+  Monitor,
+  Smartphone,
+  Calendar,
+  Clock,
+  RefreshCw,
+  FileText,
+  Users,
+  Activity,
+  Layers,
 } from 'lucide-react';
 import { Article, GalleryImage } from '../../types/blog';
 import {
@@ -23,17 +34,28 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
-  saveArticles,
   checkAdminSession,
   setAdminSession,
+  saveArticles,
 } from '../../lib/storage';
+import {
+  getAnalyticsSummary,
+  AnalyticsSummary,
+  getStoredVisits,
+  clearAnalyticsLogs,
+  VisitLog,
+} from '../../lib/analytics';
 
 export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [passwordInput, setPasswordInput] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
 
+  // Active Admin View: 'articles' or 'analytics'
+  const [activeTab, setActiveTab] = useState<'articles' | 'analytics'>('articles');
+
   const [articles, setArticles] = useState<Article[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('Todas');
 
@@ -66,11 +88,16 @@ export default function AdminPage() {
     setTimeout(() => setToastMessage(''), 3000);
   };
 
+  const loadData = () => {
+    setArticles(getStoredArticles());
+    setAnalytics(getAnalyticsSummary());
+  };
+
   useEffect(() => {
     const isAuth = checkAdminSession();
     setIsAuthenticated(isAuth);
     if (isAuth) {
-      setArticles(getStoredArticles());
+      loadData();
     }
   }, []);
 
@@ -80,7 +107,7 @@ export default function AdminPage() {
       setAdminSession(true, true);
       setIsAuthenticated(true);
       setAuthError('');
-      setArticles(getStoredArticles());
+      loadData();
     } else {
       setAuthError('Contraseña incorrecta.');
     }
@@ -100,8 +127,8 @@ export default function AdminPage() {
     setPullQuote('');
     setAuthor('Redactor');
     setAuthorRole('');
-    setDate('5 de Octubre de 1970');
-    setEpochYear(1970);
+    setDate('6 de Octubre de 2026');
+    setEpochYear(2026);
     setCategory('Historia');
     setCoverImage('https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=1200&auto=format&fit=crop&q=80');
     setCoverCaption('');
@@ -162,7 +189,7 @@ export default function AdminPage() {
       pullQuote: pullQuote.trim() || undefined,
       author: author.trim(),
       authorRole: authorRole.trim() || undefined,
-      date: date.trim() || '5 de Octubre de 1970',
+      date: date.trim() || '6 de Octubre de 2026',
       epochYear: Number(epochYear) || 1970,
       category,
       edition: 'Edición General',
@@ -183,7 +210,7 @@ export default function AdminPage() {
       showToast('Nueva noticia publicada.');
     }
 
-    setArticles(getStoredArticles());
+    loadData();
     setIsEditing(false);
     resetForm();
   };
@@ -191,7 +218,7 @@ export default function AdminPage() {
   const handleDeleteConfirm = () => {
     if (!deleteConfirmId) return;
     deleteArticle(deleteConfirmId);
-    setArticles(getStoredArticles());
+    loadData();
     setDeleteConfirmId(null);
     showToast('Artículo eliminado.');
   };
@@ -257,6 +284,28 @@ export default function AdminPage() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const handleExportVisitsCSV = () => {
+    const visits = getStoredVisits();
+    if (visits.length === 0) {
+      alert('No hay registros de visitas.');
+      return;
+    }
+    const headers = 'ID,Fecha y Hora,Pagina,Titulo,IP,Pais,SO,Navegador,Dispositivo\n';
+    const rows = visits
+      .map(
+        (v) =>
+          `"${v.id}","${v.dateString}","${v.path}","${v.pageTitle.replace(/"/g, '""')}","${v.ip}","${v.country}","${v.os}","${v.browser}","${v.device}"`
+      )
+      .join('\n');
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `noticias_visitas_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    showToast('Registro de visitas exportado en CSV.');
   };
 
   const filteredList = articles.filter((art) => {
@@ -330,11 +379,45 @@ export default function AdminPage() {
       {/* Top Navbar */}
       <header className="bg-white border-b border-[#eeeeee] px-4 py-3 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link href="/" className="font-headline font-bold text-lg uppercase">
               Noticias de Ayer
             </Link>
             <span className="text-xs text-[#888888]">• Admin</span>
+          </div>
+
+          {/* Navigation Tabs between Articles & Analytics */}
+          <div className="flex items-center gap-2 bg-[#f6f6f6] p-1 rounded-xs text-xs font-medium">
+            <button
+              onClick={() => {
+                setIsEditing(false);
+                setActiveTab('articles');
+              }}
+              className={`px-3 py-1 rounded-xs transition-colors flex items-center gap-1.5 ${
+                activeTab === 'articles'
+                  ? 'bg-white text-[#111111] shadow-2xs font-semibold'
+                  : 'text-[#666666] hover:text-[#111111]'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Noticias</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsEditing(false);
+                setActiveTab('analytics');
+                loadData();
+              }}
+              className={`px-3 py-1 rounded-xs transition-colors flex items-center gap-1.5 ${
+                activeTab === 'analytics'
+                  ? 'bg-white text-[#111111] shadow-2xs font-semibold'
+                  : 'text-[#666666] hover:text-[#111111]'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Estadísticas & Tráfico</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-4 text-xs">
@@ -366,95 +449,293 @@ export default function AdminPage() {
       )}
 
       <main className="grow max-w-5xl mx-auto px-4 py-8 w-full">
-        {/* Actions Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-          <div>
-            <h2 className="font-headline text-2xl font-bold">
-              {isEditing ? (editingArticleId ? 'Editar Noticia' : 'Nueva Noticia') : 'Panel de Noticias'}
-            </h2>
-            <p className="text-xs text-[#888888]">
-              {articles.length} artículos en el archivo
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!isEditing ? (
-              <button
-                onClick={startCreateNew}
-                className="px-3.5 py-1.5 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Nueva Noticia</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsEditing(false)}
-                className="px-3.5 py-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Volver al listado</span>
-              </button>
-            )}
-
-            <button
-              onClick={handleExportJSON}
-              title="Descargar respaldo JSON"
-              className="p-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#666666] rounded-xs"
-            >
-              <Download className="w-3.5 h-3.5" />
-            </button>
-
-            <label
-              title="Importar JSON"
-              className="cursor-pointer p-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#666666] rounded-xs"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
-            </label>
-          </div>
-        </div>
-
-        {/* Form */}
-        {isEditing ? (
-          <form onSubmit={handleSaveArticle} className="space-y-6">
-            <div className="bg-white border border-[#eeeeee] p-6 space-y-4">
+        {/* ========================================================================= */}
+        {/* TAB 1: NOTICIAS & ARTICULOS */}
+        {/* ========================================================================= */}
+        {activeTab === 'articles' && (
+          <>
+            {/* Actions Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
               <div>
-                <label className="block text-xs font-semibold text-[#111111] mb-1">
-                  Titular *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Titular de la noticia..."
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 font-headline text-lg font-bold text-[#111111] focus:outline-hidden focus:border-[#111111] rounded-xs"
-                />
+                <h2 className="font-headline text-2xl font-bold">
+                  {isEditing ? (editingArticleId ? 'Editar Noticia' : 'Nueva Noticia') : 'Panel de Noticias'}
+                </h2>
+                <p className="text-xs text-[#888888]">
+                  {articles.length} artículos en el archivo
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-[#555555] mb-1">
-                    Subtítulo (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Subtítulo..."
-                    value={subtitle}
-                    onChange={(e) => setSubtitle(e.target.value)}
-                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden focus:border-[#111111] rounded-xs"
-                  />
+              <div className="flex items-center gap-2">
+                {!isEditing ? (
+                  <button
+                    onClick={startCreateNew}
+                    className="px-3.5 py-1.5 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Nueva Noticia</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-3.5 py-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Volver al listado</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={handleExportJSON}
+                  title="Descargar respaldo JSON"
+                  className="p-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#666666] rounded-xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
+
+                <label
+                  title="Importar JSON"
+                  className="cursor-pointer p-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#666666] rounded-xs"
+                >
+                  <Upload className="w-3.5 h-3.5" />
+                  <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
+                </label>
+              </div>
+            </div>
+
+            {/* Form */}
+            {isEditing ? (
+              <form onSubmit={handleSaveArticle} className="space-y-6">
+                <div className="bg-white border border-[#eeeeee] p-6 space-y-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#111111] mb-1">
+                      Titular *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Titular de la noticia..."
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 font-headline text-lg font-bold text-[#111111] focus:outline-hidden focus:border-[#111111] rounded-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-[#555555] mb-1">
+                        Subtítulo (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Subtítulo..."
+                        value={subtitle}
+                        onChange={(e) => setSubtitle(e.target.value)}
+                        className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden focus:border-[#111111] rounded-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#555555] mb-1">
+                        Categoría *
+                      </label>
+                      <select
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value as Article['category'])}
+                        className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
+                      >
+                        <option value="Historia">Historia</option>
+                        <option value="Cultura & Música">Cultura & Música</option>
+                        <option value="Ciencia & Misterio">Ciencia & Misterio</option>
+                        <option value="Sociedad & Crónicas">Sociedad & Crónicas</option>
+                        <option value="Deportes">Deportes</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#111111] mb-1">
+                      Copete (Resumen de apertura) *
+                    </label>
+                    <textarea
+                      required
+                      rows={2}
+                      placeholder="Resumen que introduce la noticia..."
+                      value={copete}
+                      onChange={(e) => setCopete(e.target.value)}
+                      className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 text-sm italic focus:outline-hidden focus:border-[#111111] rounded-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-[#555555] mb-1">
+                        Autor *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={author}
+                        onChange={(e) => setAuthor(e.target.value)}
+                        className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#555555] mb-1">
+                        Fecha *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#555555] mb-1">
+                        Año (para filtros) *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={epochYear}
+                        onChange={(e) => setEpochYear(Number(e.target.value))}
+                        className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Photos */}
+                  <div className="pt-3 border-t border-[#eeeeee] space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#111111] mb-1">
+                        Foto Principal *
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          required
+                          placeholder="https://images.unsplash.com/..."
+                          value={coverImage}
+                          onChange={(e) => setCoverImage(e.target.value)}
+                          className="grow bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
+                        />
+                        <label className="cursor-pointer px-3 py-2 bg-[#f0f0f0] hover:bg-[#e5e5e5] text-xs font-medium rounded-xs flex items-center gap-1">
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Subir</span>
+                          <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Additional gallery photos */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-medium text-[#555555]">
+                          Fotos Adicionales ({gallery.length})
+                        </label>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={handleAddGalleryUrl}
+                            className="text-xs text-[#111111] hover:underline font-medium"
+                          >
+                            + URL
+                          </button>
+                          <label className="cursor-pointer text-xs text-[#111111] hover:underline font-medium">
+                            + Subir
+                            <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="hidden" />
+                          </label>
+                        </div>
+                      </div>
+
+                      {gallery.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                          {gallery.map((img) => (
+                            <div key={img.id} className="relative border border-[#eeeeee] p-1 bg-[#fafafa]">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveGalleryImage(img.id)}
+                                className="absolute top-1 right-1 bg-black text-white p-0.5 rounded-full opacity-80 hover:opacity-100"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                              <img src={img.url} alt="" className="w-full h-20 object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Paragraphs */}
+                  <div className="pt-3 border-t border-[#eeeeee]">
+                    <label className="block text-xs font-semibold text-[#111111] mb-1">
+                      Párrafos de la Noticia * (Separar cada párrafo con doble enter)
+                    </label>
+                    <textarea
+                      required
+                      rows={6}
+                      placeholder={`Primer párrafo...\n\nSegundo párrafo...`}
+                      value={rawContent}
+                      onChange={(e) => setRawContent(e.target.value)}
+                      className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 text-sm leading-relaxed focus:outline-hidden focus:border-[#111111] rounded-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      type="checkbox"
+                      id="featuredCheck"
+                      checked={featured}
+                      onChange={(e) => setFeatured(e.target.checked)}
+                      className="w-4 h-4 accent-[#111111]"
+                    />
+                    <label htmlFor="featuredCheck" className="text-xs font-medium cursor-pointer">
+                      Destacar como Noticia Principal (Hero)
+                    </label>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#555555] mb-1">
-                    Categoría *
-                  </label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as Article['category'])}
-                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing(false)}
+                    className="px-4 py-2 bg-white border border-[#e5e5e5] text-xs font-medium rounded-xs"
                   >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs transition-colors"
+                  >
+                    {editingArticleId ? 'Guardar Cambios' : 'Publicar'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              /* Table */
+              <div className="bg-white border border-[#eeeeee] overflow-hidden">
+                <div className="p-3 border-b border-[#eeeeee] flex flex-wrap items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center bg-[#fafafa] border border-[#e5e5e5] rounded-xs px-2.5 py-1 w-full sm:w-64">
+                    <Search className="w-3.5 h-3.5 text-[#888888] mr-1.5" />
+                    <input
+                      type="text"
+                      placeholder="Buscar..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="bg-transparent text-xs focus:outline-hidden w-full"
+                    />
+                  </div>
+
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="bg-[#fafafa] border border-[#e5e5e5] p-1 text-xs focus:outline-hidden rounded-xs"
+                  >
+                    <option value="Todas">Todas las categorías</option>
                     <option value="Historia">Historia</option>
                     <option value="Cultura & Música">Cultura & Música</option>
                     <option value="Ciencia & Misterio">Ciencia & Misterio</option>
@@ -462,264 +743,323 @@ export default function AdminPage() {
                     <option value="Deportes">Deportes</option>
                   </select>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-[#111111] mb-1">
-                  Copete (Resumen de apertura) *
-                </label>
-                <textarea
-                  required
-                  rows={2}
-                  placeholder="Resumen que introduce la noticia..."
-                  value={copete}
-                  onChange={(e) => setCopete(e.target.value)}
-                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 text-sm italic focus:outline-hidden focus:border-[#111111] rounded-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-[#555555] mb-1">
-                    Autor *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
-                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#555555] mb-1">
-                    Fecha *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#555555] mb-1">
-                    Año (para filtros) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    value={epochYear}
-                    onChange={(e) => setEpochYear(Number(e.target.value))}
-                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
-                  />
-                </div>
-              </div>
-
-              {/* Photos */}
-              <div className="pt-3 border-t border-[#eeeeee] space-y-3">
-                <div>
-                  <label className="block text-xs font-semibold text-[#111111] mb-1">
-                    Foto Principal *
-                  </label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      required
-                      placeholder="https://images.unsplash.com/..."
-                      value={coverImage}
-                      onChange={(e) => setCoverImage(e.target.value)}
-                      className="grow bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
-                    />
-                    <label className="cursor-pointer px-3 py-2 bg-[#f0f0f0] hover:bg-[#e5e5e5] text-xs font-medium rounded-xs flex items-center gap-1">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Subir</span>
-                      <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Additional gallery photos */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-medium text-[#555555]">
-                      Fotos Adicionales ({gallery.length})
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={handleAddGalleryUrl}
-                        className="text-xs text-[#111111] hover:underline font-medium"
-                      >
-                        + URL
-                      </button>
-                      <label className="cursor-pointer text-xs text-[#111111] hover:underline font-medium">
-                        + Subir
-                        <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="hidden" />
-                      </label>
-                    </div>
-                  </div>
-
-                  {gallery.length > 0 && (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {gallery.map((img) => (
-                        <div key={img.id} className="relative border border-[#eeeeee] p-1 bg-[#fafafa]">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveGalleryImage(img.id)}
-                            className="absolute top-1 right-1 bg-black text-white p-0.5 rounded-full opacity-80 hover:opacity-100"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                          <img src={img.url} alt="" className="w-full h-20 object-cover" />
-                        </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-[#fafafa] border-b border-[#eeeeee] text-[#888888] uppercase tracking-wider font-semibold">
+                        <th className="p-3 w-16">Foto</th>
+                        <th className="p-3">Título</th>
+                        <th className="p-3">Categoría</th>
+                        <th className="p-3">Autor</th>
+                        <th className="p-3 text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#eeeeee]">
+                      {filteredList.map((art) => (
+                        <tr key={art.id} className="hover:bg-[#fafafa] transition-colors">
+                          <td className="p-3">
+                            <img src={art.coverImage} alt="" className="w-12 h-9 object-cover rounded-xs" />
+                          </td>
+                          <td className="p-3">
+                            <strong className="font-headline text-sm font-semibold text-[#111111] line-clamp-1">
+                              {art.title}
+                            </strong>
+                            <p className="text-[11px] text-[#777777] line-clamp-1 italic">
+                              {art.copete}
+                            </p>
+                          </td>
+                          <td className="p-3 text-[#555555] whitespace-nowrap">
+                            {art.category}
+                          </td>
+                          <td className="p-3 text-[#555555] whitespace-nowrap">
+                            {art.author}
+                          </td>
+                          <td className="p-3 text-right whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1.5">
+                              <Link
+                                href={`/noticia/${art.id}`}
+                                target="_blank"
+                                className="p-1 text-[#888888] hover:text-[#111111]"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </Link>
+                              <button
+                                onClick={() => startEditArticle(art)}
+                                className="p-1 text-[#888888] hover:text-[#111111]"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => setDeleteConfirmId(art.id)}
+                                className="p-1 text-red-600 hover:text-red-800"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       ))}
+                    </tbody>
+                  </table>
+
+                  {filteredList.length === 0 && (
+                    <div className="p-6 text-center text-xs text-[#888888]">
+                      No hay artículos que coincidan.
                     </div>
                   )}
                 </div>
               </div>
+            )}
+          </>
+        )}
 
-              {/* Paragraphs */}
-              <div className="pt-3 border-t border-[#eeeeee]">
-                <label className="block text-xs font-semibold text-[#111111] mb-1">
-                  Párrafos de la Noticia * (Separar cada párrafo con doble enter)
-                </label>
-                <textarea
-                  required
-                  rows={6}
-                  placeholder={`Primer párrafo...\n\nSegundo párrafo...`}
-                  value={rawContent}
-                  onChange={(e) => setRawContent(e.target.value)}
-                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 text-sm leading-relaxed focus:outline-hidden focus:border-[#111111] rounded-xs"
-                />
+        {/* ========================================================================= */}
+        {/* TAB 2: ESTADÍSTICAS & ANALÍTICA DE TRÁFICO */}
+        {/* ========================================================================= */}
+        {activeTab === 'analytics' && analytics && (
+          <div className="space-y-8">
+            {/* Top KPIs Summary */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-headline text-2xl font-bold">
+                  Estadísticas y Tráfico
+                </h2>
+                <p className="text-xs text-[#888888]">
+                  Métricas de audiencia, ubicaciones y dispositivos
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
-                <input
-                  type="checkbox"
-                  id="featuredCheck"
-                  checked={featured}
-                  onChange={(e) => setFeatured(e.target.checked)}
-                  className="w-4 h-4 accent-[#111111]"
-                />
-                <label htmlFor="featuredCheck" className="text-xs font-medium cursor-pointer">
-                  Destacar como Noticia Principal (Hero)
-                </label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={loadData}
+                  className="px-3 py-1.5 bg-[#fafafa] border border-[#e5e5e5] hover:bg-[#f0f0f0] text-xs text-[#555555] rounded-xs flex items-center gap-1.5 transition-colors"
+                  title="Actualizar datos"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Actualizar</span>
+                </button>
+
+                <button
+                  onClick={handleExportVisitsCSV}
+                  className="px-3 py-1.5 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Exportar CSV</span>
+                </button>
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                className="px-4 py-2 bg-white border border-[#e5e5e5] text-xs font-medium rounded-xs"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                className="px-5 py-2 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs transition-colors"
-              >
-                {editingArticleId ? 'Guardar Cambios' : 'Publicar'}
-              </button>
-            </div>
-          </form>
-        ) : (
-          /* Table */
-          <div className="bg-white border border-[#eeeeee] overflow-hidden">
-            <div className="p-3 border-b border-[#eeeeee] flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center bg-[#fafafa] border border-[#e5e5e5] rounded-xs px-2.5 py-1 w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-[#888888] mr-1.5" />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-transparent text-xs focus:outline-hidden w-full"
-                />
-              </div>
-
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-[#fafafa] border border-[#e5e5e5] p-1 text-xs focus:outline-hidden rounded-xs"
-              >
-                <option value="Todas">Todas las categorías</option>
-                <option value="Historia">Historia</option>
-                <option value="Cultura & Música">Cultura & Música</option>
-                <option value="Ciencia & Misterio">Ciencia & Misterio</option>
-                <option value="Sociedad & Crónicas">Sociedad & Crónicas</option>
-                <option value="Deportes">Deportes</option>
-              </select>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#fafafa] border-b border-[#eeeeee] text-[#888888] uppercase tracking-wider font-semibold">
-                    <th className="p-3 w-16">Foto</th>
-                    <th className="p-3">Título</th>
-                    <th className="p-3">Categoría</th>
-                    <th className="p-3">Autor</th>
-                    <th className="p-3 text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#eeeeee]">
-                  {filteredList.map((art) => (
-                    <tr key={art.id} className="hover:bg-[#fafafa] transition-colors">
-                      <td className="p-3">
-                        <img src={art.coverImage} alt="" className="w-12 h-9 object-cover rounded-xs" />
-                      </td>
-                      <td className="p-3">
-                        <strong className="font-headline text-sm font-semibold text-[#111111] line-clamp-1">
-                          {art.title}
-                        </strong>
-                        <p className="text-[11px] text-[#777777] line-clamp-1 italic">
-                          {art.copete}
-                        </p>
-                      </td>
-                      <td className="p-3 text-[#555555] whitespace-nowrap">
-                        {art.category}
-                      </td>
-                      <td className="p-3 text-[#555555] whitespace-nowrap">
-                        {art.author}
-                      </td>
-                      <td className="p-3 text-right whitespace-nowrap">
-                        <div className="inline-flex items-center gap-1.5">
-                          <Link
-                            href={`/noticia/${art.id}`}
-                            target="_blank"
-                            className="p-1 text-[#888888] hover:text-[#111111]"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </Link>
-                          <button
-                            onClick={() => startEditArticle(art)}
-                            className="p-1 text-[#888888] hover:text-[#111111]"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirmId(art.id)}
-                            className="p-1 text-red-600 hover:text-red-800"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {filteredList.length === 0 && (
-                <div className="p-6 text-center text-xs text-[#888888]">
-                  No hay artículos que coincidan.
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Visitas Históricas Totales */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-xs text-[#888888]">
+                  <span className="uppercase tracking-wider font-semibold">Visitas Históricas</span>
+                  <Activity className="w-4 h-4 text-[#111111]" />
                 </div>
-              )}
+                <p className="font-headline text-3xl font-bold text-[#111111]">
+                  {analytics.totalVisits.toLocaleString('es-AR')}
+                </p>
+                <p className="text-[11px] text-[#888888]">
+                  Total acumulado en el archivo
+                </p>
+              </div>
+
+              {/* Visitas de Hoy */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-xs text-[#888888]">
+                  <span className="uppercase tracking-wider font-semibold">Visitas de Hoy</span>
+                  <Clock className="w-4 h-4 text-[#111111]" />
+                </div>
+                <p className="font-headline text-3xl font-bold text-[#111111]">
+                  {analytics.todayVisits.toLocaleString('es-AR')}
+                </p>
+                <p className="text-[11px] text-[#888888]">
+                  Actividad en las últimas 24 hs
+                </p>
+              </div>
+
+              {/* Visitas del Mes */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-xs text-[#888888]">
+                  <span className="uppercase tracking-wider font-semibold">Visitas del Mes</span>
+                  <Calendar className="w-4 h-4 text-[#111111]" />
+                </div>
+                <p className="font-headline text-3xl font-bold text-[#111111]">
+                  {analytics.thisMonthVisits.toLocaleString('es-AR')}
+                </p>
+                <p className="text-[11px] text-[#888888]">
+                  Mes en curso
+                </p>
+              </div>
+
+              {/* Visitantes Únicos */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-1 shadow-2xs">
+                <div className="flex items-center justify-between text-xs text-[#888888]">
+                  <span className="uppercase tracking-wider font-semibold">Visitantes Únicos</span>
+                  <Users className="w-4 h-4 text-[#111111]" />
+                </div>
+                <p className="font-headline text-3xl font-bold text-[#111111]">
+                  {analytics.uniqueVisitorsCount.toLocaleString('es-AR')}
+                </p>
+                <p className="text-[11px] text-[#888888]">
+                  Dispositivos e IPs individuales
+                </p>
+              </div>
+            </div>
+
+            {/* Breakdown Grid: Países, Sistemas Operativos, Navegadores */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Países */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#eeeeee]">
+                  <Globe className="w-4 h-4 text-[#111111]" />
+                  <h3 className="font-headline font-bold text-sm uppercase">
+                    Países Principales
+                  </h3>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  {analytics.topCountries.slice(0, 6).map((c) => (
+                    <div key={c.country} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 font-medium">
+                          <span>{c.flag}</span>
+                          <span>{c.country}</span>
+                        </span>
+                        <span className="text-[#888888]">{c.count} visitas ({c.percentage}%)</span>
+                      </div>
+                      <div className="w-full bg-[#f0f0f0] h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="bg-[#111111] h-full rounded-full"
+                          style={{ width: `${Math.max(c.percentage, 8)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sistemas Operativos */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#eeeeee]">
+                  <Monitor className="w-4 h-4 text-[#111111]" />
+                  <h3 className="font-headline font-bold text-sm uppercase">
+                    Sistemas Operativos (SO)
+                  </h3>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  {analytics.topOperatingSystems.slice(0, 6).map((os) => (
+                    <div key={os.os} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{os.os}</span>
+                        <span className="text-[#888888]">{os.count} ({os.percentage}%)</span>
+                      </div>
+                      <div className="w-full bg-[#f0f0f0] h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="bg-[#111111] h-full rounded-full"
+                          style={{ width: `${Math.max(os.percentage, 8)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Navegadores */}
+              <div className="bg-white border border-[#eeeeee] p-5 space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#eeeeee]">
+                  <Smartphone className="w-4 h-4 text-[#111111]" />
+                  <h3 className="font-headline font-bold text-sm uppercase">
+                    Navegadores Web
+                  </h3>
+                </div>
+
+                <div className="space-y-2.5 text-xs">
+                  {analytics.topBrowsers.slice(0, 6).map((b) => (
+                    <div key={b.browser} className="space-y-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{b.browser}</span>
+                        <span className="text-[#888888]">{b.count} ({b.percentage}%)</span>
+                      </div>
+                      <div className="w-full bg-[#f0f0f0] h-1.5 rounded-full overflow-hidden">
+                        <div
+                          className="bg-[#111111] h-full rounded-full"
+                          style={{ width: `${Math.max(b.percentage, 8)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Registro Detallado de Últimas Visitas (Log con IP, SO, País, etc.) */}
+            <div className="bg-white border border-[#eeeeee] overflow-hidden space-y-0">
+              <div className="p-4 border-b border-[#eeeeee] flex items-center justify-between">
+                <div>
+                  <h3 className="font-headline font-bold text-base uppercase">
+                    Registro de Visitas Recientes (Log de Tráfico)
+                  </h3>
+                  <p className="text-xs text-[#888888]">
+                    Detalle de IPs, Ubicación geográfica, Sistema Operativo y Páginas consultadas
+                  </p>
+                </div>
+
+                <span className="text-xs bg-[#f5f5f5] px-2.5 py-1 rounded text-[#666666]">
+                  {analytics.recentVisits.length} registros recientes
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#fafafa] border-b border-[#eeeeee] text-[#888888] uppercase tracking-wider font-semibold">
+                      <th className="p-3">Fecha / Hora</th>
+                      <th className="p-3">Página / Crónica</th>
+                      <th className="p-3">Dirección IP</th>
+                      <th className="p-3">País</th>
+                      <th className="p-3">Sistema Operativo</th>
+                      <th className="p-3">Navegador</th>
+                      <th className="p-3">Dispositivo</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#eeeeee]">
+                    {analytics.recentVisits.map((v) => (
+                      <tr key={v.id} className="hover:bg-[#fafafa] transition-colors">
+                        <td className="p-3 text-[#666666] whitespace-nowrap">
+                          {v.dateString}
+                        </td>
+                        <td className="p-3 font-medium text-[#111111] max-w-[220px] truncate">
+                          <Link href={v.path} target="_blank" className="hover:underline">
+                            {v.pageTitle}
+                          </Link>
+                        </td>
+                        <td className="p-3 font-mono text-[#555555] whitespace-nowrap">
+                          {v.ip}
+                        </td>
+                        <td className="p-3 text-[#111111] whitespace-nowrap">
+                          <span className="mr-1.5">{v.flag}</span>
+                          <span>{v.country}</span>
+                        </td>
+                        <td className="p-3 text-[#555555] whitespace-nowrap">
+                          {v.os}
+                        </td>
+                        <td className="p-3 text-[#555555] whitespace-nowrap">
+                          {v.browser}
+                        </td>
+                        <td className="p-3 text-[#666666] whitespace-nowrap">
+                          <span className="bg-[#f0f0f0] px-1.5 py-0.5 rounded text-[11px]">
+                            {v.device}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

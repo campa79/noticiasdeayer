@@ -6,6 +6,7 @@ import Footer from '../components/Footer';
 import ArticleCard from '../components/ArticleCard';
 import { Article } from '../types/blog';
 import { getStoredArticles } from '../lib/storage';
+import { recordPageView } from '../lib/analytics';
 
 export default function HomePage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -13,6 +14,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
+    recordPageView('/', 'Portada Principal — Noticias de Ayer');
     const loaded = getStoredArticles();
     setArticles(loaded);
 

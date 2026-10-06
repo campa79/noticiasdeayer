@@ -15,6 +15,7 @@ import {
   addCommentToArticle,
   incrementArticleViews,
 } from '../../../lib/storage';
+import { recordPageView } from '../../../lib/analytics';
 
 export default function ArticleDetailPage() {
   const params = useParams();
@@ -40,6 +41,7 @@ export default function ArticleDetailPage() {
       if (found) {
         setArticle(found);
         incrementArticleViews(found.id);
+        recordPageView(`/noticia/${found.id}`, found.title);
       }
     }
 
