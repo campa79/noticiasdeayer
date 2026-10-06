@@ -46,7 +46,7 @@ export default function HomePage() {
     : filteredArticles;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--paper-bg)] text-[var(--ink-primary)]">
+    <div className="min-h-screen flex flex-col bg-white text-[#111111]">
       <Header
         currentCategory={selectedCategory}
         onSelectCategory={setSelectedCategory}
@@ -54,17 +54,17 @@ export default function HomePage() {
         onSearchChange={setSearchQuery}
       />
 
-      <main className="grow max-w-5xl mx-auto px-4 py-8 sm:py-12 w-full space-y-10 sm:space-y-14">
+      <main className="grow max-w-5xl mx-auto px-4 py-8 sm:py-12 w-full space-y-12 sm:space-y-16">
         {/* Active Filter Notice */}
         {(selectedCategory !== 'Todas' || searchQuery) && (
-          <div className="flex items-center justify-between border-b border-[var(--paper-border)] pb-3 text-xs font-body text-[var(--ink-secondary)]">
+          <div className="flex items-center justify-between border-b border-[#eeeeee] pb-3 text-xs font-body text-[#666666]">
             <div>
               <span>Filtrado por: </span>
               {selectedCategory !== 'Todas' && (
-                <strong className="text-[var(--ink-accent)] mr-2">[{selectedCategory}]</strong>
+                <strong className="text-[#111111] mr-2">[{selectedCategory}]</strong>
               )}
               {searchQuery && <span className="italic">«{searchQuery}»</span>}
-              <span> ({filteredArticles.length} resultados)</span>
+              <span> ({filteredArticles.length} artículos)</span>
             </div>
 
             <button
@@ -72,28 +72,28 @@ export default function HomePage() {
                 setSelectedCategory('Todas');
                 setSearchQuery('');
               }}
-              className="text-[var(--ink-accent)] hover:underline font-medium"
+              className="text-[#111111] hover:underline font-medium"
             >
-              Limpiar filtros
+              Restablecer
             </button>
           </div>
         )}
 
         {/* Empty State */}
         {filteredArticles.length === 0 && (
-          <div className="bg-[var(--paper-card)] border border-[var(--paper-border)] p-12 text-center my-8">
+          <div className="py-16 text-center">
             <h3 className="font-headline text-xl font-bold mb-2">
-              No se encontraron crónicas
+              No se encontraron artículos
             </h3>
-            <p className="font-body text-sm text-[var(--ink-muted)] mb-4">
-              Pruebe buscando con otra palabra o seleccionando otra categoría.
+            <p className="font-body text-sm text-[#777777] mb-4">
+              Pruebe buscando con otro término.
             </p>
             <button
               onClick={() => {
                 setSelectedCategory('Todas');
                 setSearchQuery('');
               }}
-              className="px-4 py-2 bg-[var(--ink-primary)] text-white text-xs font-body rounded hover:bg-[var(--ink-accent)] transition-colors"
+              className="px-4 py-2 bg-[#111111] text-white text-xs font-body rounded hover:bg-[#333333] transition-colors"
             >
               Ver todas las noticias
             </button>
@@ -110,13 +110,7 @@ export default function HomePage() {
         {/* Other Articles Grid */}
         {otherArticles.length > 0 && (
           <section>
-            <div className="border-b border-[var(--paper-border)] pb-2 mb-6">
-              <h3 className="font-headline text-xl font-bold uppercase tracking-wide text-[var(--ink-primary)]">
-                Crónicas Recientes
-              </h3>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
               {otherArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} layout="standard" />
               ))}

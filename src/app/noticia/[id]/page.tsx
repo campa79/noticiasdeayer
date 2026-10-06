@@ -55,24 +55,22 @@ export default function ArticleDetailPage() {
 
   if (!article) {
     return (
-      <div className="min-h-screen flex flex-col bg-[var(--paper-bg)] text-[var(--ink-primary)]">
+      <div className="min-h-screen flex flex-col bg-white text-[#111111]">
         <Header />
         <main className="grow max-w-3xl mx-auto px-4 py-20 text-center">
-          <div className="bg-[var(--paper-card)] border border-[var(--paper-border)] p-8 sm:p-12">
-            <h2 className="font-headline text-2xl font-bold mb-3">
-              Crónica no encontrada
-            </h2>
-            <p className="font-body text-sm text-[var(--ink-muted)] mb-6">
-              El artículo solicitado no existe o fue retirado del archivo.
-            </p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--ink-primary)] hover:bg-[var(--ink-accent)] text-white font-body text-xs rounded transition-colors"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Volver a la portada</span>
-            </Link>
-          </div>
+          <h2 className="font-headline text-2xl font-bold mb-3">
+            Artículo no encontrado
+          </h2>
+          <p className="font-body text-sm text-[#777777] mb-6">
+            La crónica solicitada no existe o fue retirada.
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[#111111] hover:bg-[#333333] text-white font-body text-xs rounded transition-colors"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Volver al inicio</span>
+          </Link>
         </main>
         <Footer />
       </div>
@@ -138,57 +136,57 @@ export default function ArticleDetailPage() {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--paper-bg)] text-[var(--ink-primary)]">
+    <div className="min-h-screen flex flex-col bg-white text-[#111111]">
       <Header />
 
-      <main className="grow max-w-3xl mx-auto px-4 py-8 sm:py-12 w-full">
+      <main className="grow max-w-3xl mx-auto px-4 py-10 sm:py-14 w-full">
         {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between gap-2 mb-8 text-xs font-body text-[var(--ink-muted)]">
+        <div className="flex items-center justify-between gap-2 mb-8 text-xs font-body text-[#888888]">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 hover:text-[var(--ink-primary)] transition-colors"
+            className="inline-flex items-center gap-1 hover:text-[#111111] transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Volver a Portada</span>
           </Link>
 
           <div className="flex items-center gap-1.5">
-            <span className="uppercase font-semibold text-[var(--ink-accent)]">{article.category}</span>
+            <span className="uppercase font-medium text-[#111111]">{article.category}</span>
             <span>•</span>
             <span>{article.date}</span>
           </div>
         </div>
 
-        {/* Article Container */}
+        {/* Article Content */}
         <article className="space-y-8">
           {/* Header & Title */}
           <div className="space-y-4">
             {article.subtitle && (
-              <p className="font-body text-xs font-semibold uppercase tracking-widest text-[var(--ink-accent)]">
+              <p className="font-body text-xs font-semibold uppercase tracking-widest text-[#777777]">
                 {article.subtitle}
               </p>
             )}
 
-            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-[var(--ink-primary)]">
+            <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-[#111111]">
               {article.title}
             </h1>
 
-            <p className="font-body text-lg sm:text-xl text-[var(--ink-secondary)] italic leading-relaxed pt-2 border-l-2 border-[var(--ink-accent)] pl-4">
+            <p className="font-body text-lg sm:text-xl text-[#444444] italic leading-relaxed pt-2">
               «{article.copete}»
             </p>
           </div>
 
           {/* Byline & Share Tools */}
-          <div className="py-4 border-y border-[var(--paper-border)] flex flex-wrap items-center justify-between gap-4 text-xs font-body text-[var(--ink-muted)]">
+          <div className="py-4 border-y border-[#eeeeee] flex flex-wrap items-center justify-between gap-4 text-xs font-body text-[#888888]">
             <div>
-              <span className="font-medium text-[var(--ink-primary)]">Por {article.author}</span>
+              <span className="font-medium text-[#111111]">Por {article.author}</span>
               {article.authorRole && <span> — {article.authorRole}</span>}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={handlePrint}
-                className="hover:text-[var(--ink-primary)] transition-colors flex items-center gap-1"
+                className="hover:text-[#111111] transition-colors flex items-center gap-1"
                 title="Imprimir"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -197,7 +195,7 @@ export default function ArticleDetailPage() {
 
               <button
                 onClick={handleShare}
-                className="hover:text-[var(--ink-primary)] transition-colors flex items-center gap-1"
+                className="hover:text-[#111111] transition-colors flex items-center gap-1"
                 title="Compartir enlace"
               >
                 {copiedLink ? <Check className="w-3.5 h-3.5 text-green-700" /> : <Share2 className="w-3.5 h-3.5" />}
@@ -210,20 +208,20 @@ export default function ArticleDetailPage() {
           <div>
             <div
               onClick={() => handleOpenGallery(0)}
-              className="cursor-pointer relative overflow-hidden bg-[var(--paper-subtle)] group border border-[var(--paper-border)]"
+              className="cursor-pointer relative overflow-hidden bg-[#f7f7f7] group"
             >
               <img
                 src={article.coverImage}
                 alt={article.title}
-                className="w-full max-h-[500px] object-cover vintage-photo group-hover:scale-101 transition-transform duration-300"
+                className="w-full max-h-[520px] object-cover minimal-photo"
               />
-              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-body px-2 py-0.5 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute bottom-2 right-2 bg-black/75 text-white text-[10px] font-body px-2 py-0.5 rounded flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="w-3 h-3" />
                 <span>Ampliar foto</span>
               </div>
             </div>
             {article.coverCaption && (
-              <p className="mt-2 font-body text-xs italic text-[var(--ink-muted)]">
+              <p className="mt-2 font-body text-xs italic text-[#777777]">
                 {article.coverCaption}
               </p>
             )}
@@ -232,9 +230,9 @@ export default function ArticleDetailPage() {
           {/* Additional Photos Gallery (if any) */}
           {article.gallery && article.gallery.length > 0 && (
             <div className="pt-2">
-              <div className="flex items-center gap-2 mb-3 text-xs font-body text-[var(--ink-muted)]">
-                <Camera className="w-3.5 h-3.5 text-[var(--ink-accent)]" />
-                <span className="font-semibold uppercase tracking-wider">Fotografías del reporte ({article.gallery.length})</span>
+              <div className="flex items-center gap-2 mb-3 text-xs font-body text-[#888888]">
+                <Camera className="w-3.5 h-3.5 text-[#111111]" />
+                <span className="font-semibold uppercase tracking-wider">Fotografías adicionales ({article.gallery.length})</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -242,17 +240,17 @@ export default function ArticleDetailPage() {
                   <div
                     key={photo.id || idx}
                     onClick={() => handleOpenGallery(idx + 1)}
-                    className="cursor-pointer border border-[var(--paper-border)] overflow-hidden bg-[var(--paper-subtle)] group"
+                    className="cursor-pointer overflow-hidden bg-[#f7f7f7] group"
                   >
                     <div className="relative aspect-4/3 overflow-hidden">
                       <img
                         src={photo.url}
                         alt={photo.caption || `Foto ${idx + 1}`}
-                        className="w-full h-full object-cover vintage-photo group-hover:scale-105 transition-transform duration-300"
+                        className="w-full h-full object-cover minimal-photo"
                       />
                     </div>
                     {photo.caption && (
-                      <p className="p-1.5 font-body text-[11px] italic text-[var(--ink-secondary)] line-clamp-1">
+                      <p className="p-1.5 font-body text-[11px] italic text-[#666666] line-clamp-1">
                         {photo.caption}
                       </p>
                     )}
@@ -263,7 +261,7 @@ export default function ArticleDetailPage() {
           )}
 
           {/* Paragraphs */}
-          <div className="space-y-6 text-base sm:text-lg leading-relaxed font-body text-[var(--ink-primary)] pt-4">
+          <div className="space-y-6 text-base sm:text-lg leading-relaxed font-body text-[#222222] pt-4">
             {article.content && article.content.length > 0 ? (
               article.content.map((p, idx) => (
                 <p key={idx} className={idx === 0 ? 'newspaper-dropcap' : ''}>
@@ -281,56 +279,41 @@ export default function ArticleDetailPage() {
             )}
           </div>
 
-          {/* Tags */}
-          {article.tags && article.tags.length > 0 && (
-            <div className="pt-6 border-t border-[var(--paper-border)] flex flex-wrap items-center gap-1.5 text-xs font-body text-[var(--ink-muted)]">
-              <span>Etiquetas:</span>
-              {article.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[var(--paper-subtle)] border border-[var(--paper-border)] px-2 py-0.5 rounded text-[11px]"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Comments / Cartas de Lectores */}
-          <section className="pt-10 border-t border-[var(--paper-border)]">
+          {/* Comments Section */}
+          <section className="pt-10 border-t border-[#eeeeee]">
             <h3 className="font-headline text-xl font-bold mb-6 flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-[var(--ink-accent)]" />
+              <MessageSquare className="w-4 h-4 text-[#111111]" />
               Comentarios ({article.comments?.length || 0})
             </h3>
 
-            {/* List */}
+            {/* Comments List */}
             <div className="space-y-4 mb-8">
               {article.comments && article.comments.length > 0 ? (
                 article.comments.map((comment) => (
                   <div
                     key={comment.id}
-                    className="bg-[var(--paper-card)] border border-[var(--paper-border)] p-4 rounded-xs"
+                    className="bg-[#fafafa] border border-[#f0f0f0] p-4 rounded-xs"
                   >
-                    <div className="flex items-center justify-between text-xs font-body text-[var(--ink-muted)] mb-1.5">
-                      <strong className="text-[var(--ink-primary)] font-medium">{comment.author}</strong>
+                    <div className="flex items-center justify-between text-xs font-body text-[#888888] mb-1.5">
+                      <strong className="text-[#111111] font-medium">{comment.author}</strong>
                       <span>{comment.date}</span>
                     </div>
-                    <p className="font-body text-sm text-[var(--ink-secondary)] italic">
+                    <p className="font-body text-sm text-[#444444] italic">
                       «{comment.text}»
                     </p>
                   </div>
                 ))
               ) : (
-                <p className="text-xs font-body italic text-[var(--ink-muted)]">
-                  No hay comentarios aún. Deja tu mensaje a continuación.
+                <p className="text-xs font-body italic text-[#888888]">
+                  No hay comentarios aún.
                 </p>
               )}
             </div>
 
-            {/* Form */}
-            <form onSubmit={handleCommentSubmit} className="bg-[var(--paper-card)] border border-[var(--paper-border)] p-5 space-y-3">
-              <h4 className="font-body text-xs font-semibold uppercase tracking-wider text-[var(--ink-secondary)]">
-                Escribir un comentario
+            {/* Comment Form */}
+            <form onSubmit={handleCommentSubmit} className="space-y-3">
+              <h4 className="font-body text-xs font-semibold uppercase tracking-wider text-[#666666]">
+                Dejar un comentario
               </h4>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -340,14 +323,14 @@ export default function ArticleDetailPage() {
                   placeholder="Tu nombre *"
                   value={commentAuthor}
                   onChange={(e) => setCommentAuthor(e.target.value)}
-                  className="bg-[var(--paper-bg)] border border-[var(--paper-border)] px-3 py-1.5 text-xs font-body text-[var(--ink-primary)] focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                  className="bg-[#fafafa] border border-[#e5e5e5] px-3 py-2 text-xs font-body text-[#111111] focus:outline-hidden focus:border-[#111111] rounded-xs"
                 />
                 <input
                   type="text"
                   placeholder="Ciudad / Barrio (opcional)"
                   value={commentCity}
                   onChange={(e) => setCommentCity(e.target.value)}
-                  className="bg-[var(--paper-bg)] border border-[var(--paper-border)] px-3 py-1.5 text-xs font-body text-[var(--ink-primary)] focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                  className="bg-[#fafafa] border border-[#e5e5e5] px-3 py-2 text-xs font-body text-[#111111] focus:outline-hidden focus:border-[#111111] rounded-xs"
                 />
               </div>
 
@@ -357,15 +340,15 @@ export default function ArticleDetailPage() {
                 placeholder="Escribe tu mensaje..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] px-3 py-2 text-xs font-body text-[var(--ink-primary)] focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                className="w-full bg-[#fafafa] border border-[#e5e5e5] px-3 py-2 text-xs font-body text-[#111111] focus:outline-hidden focus:border-[#111111] rounded-xs"
               />
 
               <button
                 type="submit"
-                className="px-4 py-2 bg-[var(--ink-primary)] hover:bg-[var(--ink-accent)] text-white text-xs font-body font-medium rounded-xs transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 bg-[#111111] hover:bg-[#333333] text-white text-xs font-body font-medium rounded-xs transition-colors flex items-center gap-1.5"
               >
                 <Send className="w-3 h-3" />
-                <span>Publicar comentario</span>
+                <span>Publicar</span>
               </button>
             </form>
           </section>
@@ -373,7 +356,7 @@ export default function ArticleDetailPage() {
 
         {/* Related Articles */}
         {relatedArticles.length > 0 && (
-          <section className="mt-14 pt-10 border-t border-[var(--paper-border)]">
+          <section className="mt-14 pt-10 border-t border-[#eeeeee]">
             <h3 className="font-headline text-xl font-bold uppercase mb-6">
               Otras Crónicas
             </h3>

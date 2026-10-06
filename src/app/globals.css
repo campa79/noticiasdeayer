@@ -1,26 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400;1,600&family=Special+Elite&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,400;1,600&family=Inter:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 :root {
-  /* Minimalist Warm Vintage Palette */
-  --paper-bg: #faf7f2;
+  /* Ultra-Minimalist Pure White Palette */
+  --paper-bg: #ffffff;
   --paper-card: #ffffff;
-  --paper-subtle: #f2ede4;
-  --paper-border: #e0d7c7;
-  --paper-border-dark: #2c251e;
-  --ink-primary: #231c15;
-  --ink-secondary: #5e5246;
-  --ink-muted: #8c7e70;
-  --ink-accent: #9e2a2b; /* Subtle Vintage Red */
+  --paper-subtle: #f9f9f9;
+  --paper-border: #eeeeee;
+  --paper-border-dark: #111111;
+  --ink-primary: #111111;
+  --ink-secondary: #444444;
+  --ink-muted: #777777;
+  --ink-accent: #9e2a2b; /* Subtle Red Accent */
   
   --font-headline: 'Playfair Display', Georgia, serif;
   --font-body: 'Newsreader', 'Lora', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-masthead: 'Cinzel', serif;
-  --font-typewriter: 'Special Elite', monospace;
 }
 
 body {
-  background-color: var(--paper-bg);
+  background-color: #ffffff;
   color: var(--ink-primary);
   font-family: var(--font-body);
   min-height: 100vh;
@@ -30,7 +30,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Minimalist Typography */
 .font-masthead {
   font-family: var(--font-masthead);
 }
@@ -43,30 +42,29 @@ body {
   font-family: var(--font-body);
 }
 
-.font-typewriter {
-  font-family: var(--font-typewriter);
+.font-sans {
+  font-family: var(--font-sans);
 }
 
-/* Subtle vintage photo filter */
-.vintage-photo {
-  filter: sepia(0.12) contrast(1.04);
-  transition: opacity 0.2s ease, transform 0.3s ease;
-}
-
-.vintage-photo:hover {
-  filter: sepia(0.02) contrast(1.08);
-}
-
-/* Drop-cap minimalist */
+/* Drop-cap ultra minimal */
 .newspaper-dropcap::first-letter {
   font-family: var(--font-headline);
   float: left;
-  font-size: 3.2rem;
+  font-size: 3.4rem;
   line-height: 0.85;
   font-weight: 700;
-  padding-right: 0.45rem;
+  padding-right: 0.5rem;
   padding-top: 0.15rem;
-  color: var(--ink-accent);
+  color: var(--ink-primary);
+}
+
+/* Subtle image hover */
+.minimal-photo {
+  transition: opacity 0.2s ease;
+}
+
+.minimal-photo:hover {
+  opacity: 0.95;
 }
 
 /* Pull quote minimal */
@@ -74,29 +72,9 @@ body {
   font-family: var(--font-headline);
   font-style: italic;
   font-size: 1.25rem;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--ink-primary);
-  border-left: 3px solid var(--ink-accent);
+  border-left: 2px solid var(--ink-primary);
   padding: 0.5rem 1rem;
-  margin: 1.75rem 0;
-  background-color: rgba(158, 42, 43, 0.03);
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--paper-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--paper-border);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ink-muted);
+  margin: 2rem 0;
 }

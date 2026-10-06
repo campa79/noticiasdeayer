@@ -27,24 +27,24 @@ export default function Header({
   onSearchChange,
 }: HeaderProps) {
   return (
-    <header className="w-full bg-[var(--paper-bg)] border-b border-[var(--paper-border)]">
+    <header className="w-full bg-white border-b border-[#eeeeee]">
       {/* Top minimal Masthead */}
-      <div className="max-w-5xl mx-auto px-4 pt-8 pb-6 text-center relative">
+      <div className="max-w-5xl mx-auto px-4 pt-10 pb-8 text-center relative">
         <Link href="/" className="inline-block group">
-          <h1 className="font-headline text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[var(--ink-primary)] group-hover:text-[var(--ink-accent)] transition-colors duration-150 uppercase">
+          <h1 className="font-headline text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-[#111111] uppercase">
             Noticias de Ayer
           </h1>
         </Link>
-        <p className="font-body text-xs sm:text-sm text-[var(--ink-muted)] mt-1.5 italic tracking-wide">
-          Diario de archivo, crónicas y acontecimientos de época
+        <p className="font-body text-xs sm:text-sm text-[#777777] mt-2 italic tracking-wide">
+          Diario de archivo y crónicas históricas
         </p>
 
-        {/* Minimal Admin Link in the corner */}
-        <div className="absolute right-4 top-8">
+        {/* Minimal Admin Link */}
+        <div className="absolute right-4 top-10">
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1 text-[11px] font-body text-[var(--ink-muted)] hover:text-[var(--ink-accent)] transition-colors"
-            title="Panel de Redacción"
+            className="inline-flex items-center gap-1 text-xs text-[#888888] hover:text-[#111111] transition-colors"
+            title="Panel de Administración"
           >
             <Shield className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Admin</span>
@@ -53,10 +53,10 @@ export default function Header({
       </div>
 
       {/* Minimal Navigation & Search */}
-      <div className="border-t border-[var(--paper-border)] bg-[var(--paper-bg)]">
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <div className="border-t border-[#f0f0f0] bg-white">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
           {/* Categories */}
-          <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto no-scrollbar text-xs sm:text-sm font-body">
+          <nav className="flex items-center gap-4 sm:gap-6 overflow-x-auto no-scrollbar text-xs sm:text-sm font-body">
             {CATEGORIES.map((cat) => {
               const isActive =
                 currentCategory === cat ||
@@ -66,10 +66,10 @@ export default function Header({
                 <button
                   key={cat}
                   onClick={() => onSelectCategory && onSelectCategory(cat)}
-                  className={`px-3 py-1 rounded-full transition-colors whitespace-nowrap text-xs font-medium ${
+                  className={`transition-colors whitespace-nowrap pb-0.5 ${
                     isActive
-                      ? 'bg-[var(--ink-primary)] text-white'
-                      : 'text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] hover:bg-[var(--paper-subtle)]'
+                      ? 'text-[#111111] font-semibold border-b-2 border-[#111111]'
+                      : 'text-[#666666] hover:text-[#111111]'
                   }`}
                 >
                   {cat}
@@ -81,19 +81,19 @@ export default function Header({
           {/* Minimal Search */}
           {onSearchChange && (
             <div className="relative flex items-center">
-              <div className="flex items-center bg-[var(--paper-card)] border border-[var(--paper-border)] rounded-full px-3 py-1 text-xs focus-within:border-[var(--ink-primary)] transition-all">
-                <Search className="w-3.5 h-3.5 text-[var(--ink-muted)] mr-1.5" />
+              <div className="flex items-center bg-[#fafafa] border border-[#e5e5e5] rounded px-2.5 py-1 text-xs focus-within:border-[#111111] transition-all">
+                <Search className="w-3.5 h-3.5 text-[#888888] mr-1.5" />
                 <input
                   type="text"
-                  placeholder="Buscar en el archivo..."
+                  placeholder="Buscar..."
                   value={searchQuery}
                   onChange={(e) => onSearchChange(e.target.value)}
-                  className="bg-transparent text-xs font-body text-[var(--ink-primary)] focus:outline-hidden w-28 sm:w-40 placeholder:text-[var(--ink-muted)]"
+                  className="bg-transparent text-xs font-body text-[#111111] focus:outline-hidden w-24 sm:w-36 placeholder:text-[#999999]"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => onSearchChange('')}
-                    className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink-primary)] ml-1"
+                    className="text-xs text-[#888888] hover:text-[#111111] ml-1"
                   >
                     ×
                   </button>

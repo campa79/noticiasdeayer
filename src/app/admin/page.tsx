@@ -4,19 +4,16 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Shield,
-  Lock,
   LogOut,
   Plus,
   Pencil,
   Trash2,
   Eye,
   Camera,
-  Check,
   X,
   ArrowLeft,
   Upload,
   Download,
-  RotateCcw,
   Search,
   ExternalLink,
 } from 'lucide-react';
@@ -26,7 +23,6 @@ import {
   createArticle,
   updateArticle,
   deleteArticle,
-  resetToInitialArticles,
   saveArticles,
   checkAdminSession,
   setAdminSession,
@@ -67,7 +63,7 @@ export default function AdminPage() {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3500);
+    setTimeout(() => setToastMessage(''), 3000);
   };
 
   useEffect(() => {
@@ -86,7 +82,7 @@ export default function AdminPage() {
       setAuthError('');
       setArticles(getStoredArticles());
     } else {
-      setAuthError('Contraseña incorrecta. (Pruebe: ayer1970 o admin)');
+      setAuthError('Contraseña incorrecta. (Demo: ayer1970)');
     }
   };
 
@@ -102,7 +98,7 @@ export default function AdminPage() {
     setCopete('');
     setRawContent('');
     setPullQuote('');
-    setAuthor('Redactor en Jefe');
+    setAuthor('Redactor');
     setAuthorRole('');
     setDate('5 de Octubre de 1970');
     setEpochYear(1970);
@@ -181,7 +177,7 @@ export default function AdminPage() {
 
     if (editingArticleId) {
       updateArticle(editingArticleId, articleData);
-      showToast('Noticia modificada correctamente.');
+      showToast('Artículo actualizado.');
     } else {
       createArticle(articleData);
       showToast('Nueva noticia publicada.');
@@ -197,7 +193,7 @@ export default function AdminPage() {
     deleteArticle(deleteConfirmId);
     setArticles(getStoredArticles());
     setDeleteConfirmId(null);
-    showToast('Noticia eliminada del blog.');
+    showToast('Artículo eliminado.');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
@@ -220,7 +216,7 @@ export default function AdminPage() {
   };
 
   const handleAddGalleryUrl = () => {
-    const url = prompt('URL de la foto:');
+    const url = prompt('URL de la fotografía:');
     if (url && url.trim()) {
       setGallery((prev) => [
         ...prev,
@@ -241,7 +237,7 @@ export default function AdminPage() {
     a.href = url;
     a.download = `noticias_de_ayer_backup_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
-    showToast('Respaldo JSON descargado.');
+    showToast('Archivo JSON descargado.');
   };
 
   const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -257,7 +253,7 @@ export default function AdminPage() {
           showToast(`Se importaron ${parsed.length} noticias.`);
         }
       } catch {
-        alert('Error al importar el archivo JSON.');
+        alert('Error al importar JSON.');
       }
     };
     reader.readAsText(file);
@@ -275,20 +271,20 @@ export default function AdminPage() {
   // Login Screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-[var(--paper-bg)] text-[var(--ink-primary)] p-4 font-body">
-        <div className="max-w-sm w-full bg-[var(--paper-card)] border border-[var(--paper-border)] p-6 sm:p-8 shadow-xs">
-          <div className="text-center pb-4 mb-6 border-b border-[var(--paper-border)]">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-white text-[#111111] p-4 font-body">
+        <div className="max-w-sm w-full bg-white border border-[#eeeeee] p-8 shadow-xs">
+          <div className="text-center pb-4 mb-6 border-b border-[#eeeeee]">
             <h1 className="font-headline text-2xl font-bold uppercase">
               Administración
             </h1>
-            <p className="text-xs text-[var(--ink-muted)] mt-1">
+            <p className="text-xs text-[#888888] mt-1">
               Noticias de Ayer
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-[var(--ink-secondary)] mb-1">
+              <label className="block text-xs font-medium text-[#555555] mb-1">
                 Contraseña
               </label>
               <input
@@ -297,38 +293,38 @@ export default function AdminPage() {
                 placeholder="••••••••"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] px-3 py-2 text-xs focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                className="w-full bg-[#fafafa] border border-[#e5e5e5] px-3 py-2 text-xs focus:outline-hidden focus:border-[#111111] rounded-xs"
               />
             </div>
 
             {authError && (
-              <p className="text-xs text-[var(--ink-accent)] font-medium">
+              <p className="text-xs text-red-600 font-medium">
                 {authError}
               </p>
             )}
 
             <button
               type="submit"
-              className="w-full py-2 bg-[var(--ink-primary)] hover:bg-[var(--ink-accent)] text-white text-xs font-medium rounded-xs transition-colors"
+              className="w-full py-2 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs transition-colors"
             >
-              Iniciar Sesión
+              Ingresar
             </button>
 
             <div className="text-center pt-2">
               <button
                 type="button"
                 onClick={() => setPasswordInput('ayer1970')}
-                className="text-[11px] text-[var(--ink-muted)] hover:underline"
+                className="text-[11px] text-[#888888] hover:underline"
               >
                 (Demo: ayer1970)
               </button>
             </div>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-[var(--paper-border)] text-center">
+          <div className="mt-6 pt-4 border-t border-[#eeeeee] text-center">
             <Link
               href="/"
-              className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink-primary)] inline-flex items-center gap-1"
+              className="text-xs text-[#888888] hover:text-[#111111] inline-flex items-center gap-1"
             >
               <ArrowLeft className="w-3 h-3" />
               <span>Volver a la portada</span>
@@ -340,30 +336,30 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--paper-bg)] text-[var(--ink-primary)] font-body">
+    <div className="min-h-screen flex flex-col bg-white text-[#111111] font-body">
       {/* Top Navbar */}
-      <header className="bg-[var(--paper-card)] border-b border-[var(--paper-border)] px-4 py-3 sticky top-0 z-30">
+      <header className="bg-white border-b border-[#eeeeee] px-4 py-3 sticky top-0 z-30">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Link href="/" className="font-headline font-bold text-lg uppercase">
               Noticias de Ayer
             </Link>
-            <span className="text-xs text-[var(--ink-muted)]">• Panel Admin</span>
+            <span className="text-xs text-[#888888]">• Admin</span>
           </div>
 
-          <div className="flex items-center gap-3 text-xs">
+          <div className="flex items-center gap-4 text-xs">
             <Link
               href="/"
               target="_blank"
-              className="text-[var(--ink-secondary)] hover:text-[var(--ink-primary)] flex items-center gap-1"
+              className="text-[#666666] hover:text-[#111111] flex items-center gap-1"
             >
               <ExternalLink className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Ver blog</span>
+              <span className="hidden sm:inline">Ver sitio</span>
             </Link>
 
             <button
               onClick={handleLogout}
-              className="text-[var(--ink-accent)] hover:underline flex items-center gap-1 font-medium"
+              className="text-[#888888] hover:text-[#111111] flex items-center gap-1"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Salir</span>
@@ -372,9 +368,9 @@ export default function AdminPage() {
         </div>
       </header>
 
-      {/* Toast message */}
+      {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 z-50 bg-[var(--ink-primary)] text-white px-4 py-2.5 rounded shadow-lg text-xs flex items-center gap-2">
+        <div className="fixed bottom-4 right-4 z-50 bg-[#111111] text-white px-4 py-2.5 rounded shadow-lg text-xs">
           <span>{toastMessage}</span>
         </div>
       )}
@@ -384,10 +380,10 @@ export default function AdminPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
           <div>
             <h2 className="font-headline text-2xl font-bold">
-              {isEditing ? (editingArticleId ? 'Editar Crónica' : 'Nueva Noticia') : 'Gestión de Noticias'}
+              {isEditing ? (editingArticleId ? 'Editar Noticia' : 'Nueva Noticia') : 'Panel de Noticias'}
             </h2>
-            <p className="text-xs text-[var(--ink-muted)]">
-              {articles.length} entradas en el blog
+            <p className="text-xs text-[#888888]">
+              {articles.length} artículos en el archivo
             </p>
           </div>
 
@@ -395,7 +391,7 @@ export default function AdminPage() {
             {!isEditing ? (
               <button
                 onClick={startCreateNew}
-                className="px-3.5 py-1.5 bg-[var(--ink-primary)] hover:bg-[var(--ink-accent)] text-white text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-1.5 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Nueva Noticia</span>
@@ -403,7 +399,7 @@ export default function AdminPage() {
             ) : (
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-3.5 py-1.5 bg-[var(--paper-card)] border border-[var(--paper-border)] hover:bg-[var(--paper-subtle)] text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
+                className="px-3.5 py-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-xs font-medium rounded-xs flex items-center gap-1.5 transition-colors"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Volver al listado</span>
@@ -413,14 +409,14 @@ export default function AdminPage() {
             <button
               onClick={handleExportJSON}
               title="Descargar respaldo JSON"
-              className="p-1.5 bg-[var(--paper-card)] border border-[var(--paper-border)] hover:bg-[var(--paper-subtle)] text-[var(--ink-muted)] rounded-xs"
+              className="p-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#666666] rounded-xs"
             >
               <Download className="w-3.5 h-3.5" />
             </button>
 
             <label
               title="Importar JSON"
-              className="cursor-pointer p-1.5 bg-[var(--paper-card)] border border-[var(--paper-border)] hover:bg-[var(--paper-subtle)] text-[var(--ink-muted)] rounded-xs"
+              className="cursor-pointer p-1.5 bg-white border border-[#e5e5e5] hover:bg-[#fafafa] text-[#666666] rounded-xs"
             >
               <Upload className="w-3.5 h-3.5" />
               <input type="file" accept=".json" onChange={handleImportJSON} className="hidden" />
@@ -428,12 +424,12 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Form: Create or Edit */}
+        {/* Form */}
         {isEditing ? (
           <form onSubmit={handleSaveArticle} className="space-y-6">
-            <div className="bg-[var(--paper-card)] border border-[var(--paper-border)] p-5 sm:p-7 space-y-4">
+            <div className="bg-white border border-[#eeeeee] p-6 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[var(--ink-primary)] mb-1">
+                <label className="block text-xs font-semibold text-[#111111] mb-1">
                   Titular *
                 </label>
                 <input
@@ -442,46 +438,44 @@ export default function AdminPage() {
                   placeholder="Titular de la noticia..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2.5 font-headline text-lg font-bold text-[var(--ink-primary)] focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 font-headline text-lg font-bold text-[#111111] focus:outline-hidden focus:border-[#111111] rounded-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--ink-secondary)] mb-1">
-                    Antetítulo / Subtítulo (opcional)
+                  <label className="block text-xs font-medium text-[#555555] mb-1">
+                    Subtítulo (opcional)
                   </label>
                   <input
                     type="text"
-                    placeholder="Ej: ACONTECIMIENTO HISTÓRICO"
+                    placeholder="Subtítulo..."
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
-                    className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2 text-xs focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden focus:border-[#111111] rounded-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[var(--ink-secondary)] mb-1">
+                  <label className="block text-xs font-medium text-[#555555] mb-1">
                     Categoría *
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value as Article['category'])}
-                    className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2 text-xs focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
                   >
                     <option value="Historia">Historia</option>
                     <option value="Cultura & Música">Cultura & Música</option>
                     <option value="Ciencia & Misterio">Ciencia & Misterio</option>
                     <option value="Sociedad & Crónicas">Sociedad & Crónicas</option>
                     <option value="Deportes">Deportes</option>
-                    <option value="Mundo">Mundo</option>
-                    <option value="Editorial">Editorial</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[var(--ink-primary)] mb-1">
+                <label className="block text-xs font-semibold text-[#111111] mb-1">
                   Copete (Resumen de apertura) *
                 </label>
                 <textarea
@@ -490,13 +484,13 @@ export default function AdminPage() {
                   placeholder="Resumen que introduce la noticia..."
                   value={copete}
                   onChange={(e) => setCopete(e.target.value)}
-                  className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2.5 text-sm italic focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 text-sm italic focus:outline-hidden focus:border-[#111111] rounded-xs"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--ink-secondary)] mb-1">
+                  <label className="block text-xs font-medium text-[#555555] mb-1">
                     Autor *
                   </label>
                   <input
@@ -504,25 +498,25 @@ export default function AdminPage() {
                     required
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
-                    className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2 text-xs focus:outline-hidden rounded-xs"
+                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[var(--ink-secondary)] mb-1">
-                    Fecha del Periódico *
+                  <label className="block text-xs font-medium text-[#555555] mb-1">
+                    Fecha *
                   </label>
                   <input
                     type="text"
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2 text-xs focus:outline-hidden rounded-xs"
+                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[var(--ink-secondary)] mb-1">
+                  <label className="block text-xs font-medium text-[#555555] mb-1">
                     Año (para filtros) *
                   </label>
                   <input
@@ -530,16 +524,16 @@ export default function AdminPage() {
                     required
                     value={epochYear}
                     onChange={(e) => setEpochYear(Number(e.target.value))}
-                    className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2 text-xs focus:outline-hidden rounded-xs"
+                    className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
                   />
                 </div>
               </div>
 
               {/* Photos */}
-              <div className="pt-3 border-t border-[var(--paper-border)] space-y-3">
+              <div className="pt-3 border-t border-[#eeeeee] space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[var(--ink-primary)] mb-1">
-                    Foto Principal de Portada * (URL o archivo)
+                  <label className="block text-xs font-semibold text-[#111111] mb-1">
+                    Foto Principal *
                   </label>
                   <div className="flex gap-2">
                     <input
@@ -548,11 +542,11 @@ export default function AdminPage() {
                       placeholder="https://images.unsplash.com/..."
                       value={coverImage}
                       onChange={(e) => setCoverImage(e.target.value)}
-                      className="grow bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2 text-xs focus:outline-hidden rounded-xs"
+                      className="grow bg-[#fafafa] border border-[#e5e5e5] p-2 text-xs focus:outline-hidden rounded-xs"
                     />
-                    <label className="cursor-pointer px-3 py-2 bg-[var(--paper-subtle)] hover:bg-[var(--paper-border)] text-xs font-medium rounded-xs flex items-center gap-1">
+                    <label className="cursor-pointer px-3 py-2 bg-[#f0f0f0] hover:bg-[#e5e5e5] text-xs font-medium rounded-xs flex items-center gap-1">
                       <Upload className="w-3.5 h-3.5" />
-                      <span>Subir foto</span>
+                      <span>Subir</span>
                       <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, false)} className="hidden" />
                     </label>
                   </div>
@@ -561,19 +555,19 @@ export default function AdminPage() {
                 {/* Additional gallery photos */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs font-medium text-[var(--ink-secondary)]">
+                    <label className="text-xs font-medium text-[#555555]">
                       Fotos Adicionales ({gallery.length})
                     </label>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <button
                         type="button"
                         onClick={handleAddGalleryUrl}
-                        className="text-xs text-[var(--ink-accent)] hover:underline"
+                        className="text-xs text-[#111111] hover:underline font-medium"
                       >
-                        + Agregar URL
+                        + URL
                       </button>
-                      <label className="cursor-pointer text-xs text-[var(--ink-accent)] hover:underline">
-                        + Subir foto
+                      <label className="cursor-pointer text-xs text-[#111111] hover:underline font-medium">
+                        + Subir
                         <input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, true)} className="hidden" />
                       </label>
                     </div>
@@ -582,11 +576,11 @@ export default function AdminPage() {
                   {gallery.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {gallery.map((img) => (
-                        <div key={img.id} className="relative border border-[var(--paper-border)] p-1 bg-[var(--paper-bg)]">
+                        <div key={img.id} className="relative border border-[#eeeeee] p-1 bg-[#fafafa]">
                           <button
                             type="button"
                             onClick={() => handleRemoveGalleryImage(img.id)}
-                            className="absolute top-1 right-1 bg-red-700 text-white p-0.5 rounded-full"
+                            className="absolute top-1 right-1 bg-black text-white p-0.5 rounded-full opacity-80 hover:opacity-100"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -599,9 +593,9 @@ export default function AdminPage() {
               </div>
 
               {/* Paragraphs */}
-              <div className="pt-3 border-t border-[var(--paper-border)]">
-                <label className="block text-xs font-semibold text-[var(--ink-primary)] mb-1">
-                  Párrafos de la Crónica * (Separar cada párrafo con doble salto de línea)
+              <div className="pt-3 border-t border-[#eeeeee]">
+                <label className="block text-xs font-semibold text-[#111111] mb-1">
+                  Párrafos de la Noticia * (Separar cada párrafo con doble enter)
                 </label>
                 <textarea
                   required
@@ -609,7 +603,7 @@ export default function AdminPage() {
                   placeholder={`Primer párrafo...\n\nSegundo párrafo...`}
                   value={rawContent}
                   onChange={(e) => setRawContent(e.target.value)}
-                  className="w-full bg-[var(--paper-bg)] border border-[var(--paper-border)] p-2.5 text-sm leading-relaxed focus:outline-hidden focus:border-[var(--ink-primary)] rounded-xs"
+                  className="w-full bg-[#fafafa] border border-[#e5e5e5] p-2.5 text-sm leading-relaxed focus:outline-hidden focus:border-[#111111] rounded-xs"
                 />
               </div>
 
@@ -619,7 +613,7 @@ export default function AdminPage() {
                   id="featuredCheck"
                   checked={featured}
                   onChange={(e) => setFeatured(e.target.checked)}
-                  className="w-4 h-4 accent-[var(--ink-accent)]"
+                  className="w-4 h-4 accent-[#111111]"
                 />
                 <label htmlFor="featuredCheck" className="text-xs font-medium cursor-pointer">
                   Destacar como Noticia Principal (Hero)
@@ -631,25 +625,24 @@ export default function AdminPage() {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 bg-[var(--paper-card)] border border-[var(--paper-border)] text-xs font-medium rounded-xs"
+                className="px-4 py-2 bg-white border border-[#e5e5e5] text-xs font-medium rounded-xs"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-[var(--ink-primary)] hover:bg-[var(--ink-accent)] text-white text-xs font-medium rounded-xs transition-colors"
+                className="px-5 py-2 bg-[#111111] hover:bg-[#333333] text-white text-xs font-medium rounded-xs transition-colors"
               >
-                {editingArticleId ? 'Guardar Cambios' : 'Publicar Noticia'}
+                {editingArticleId ? 'Guardar Cambios' : 'Publicar'}
               </button>
             </div>
           </form>
         ) : (
-          /* Table View */
-          <div className="bg-[var(--paper-card)] border border-[var(--paper-border)] overflow-hidden">
-            {/* Search */}
-            <div className="p-3 border-b border-[var(--paper-border)] flex flex-wrap items-center justify-between gap-3 text-xs">
-              <div className="flex items-center bg-[var(--paper-bg)] border border-[var(--paper-border)] rounded-xs px-2.5 py-1 w-full sm:w-64">
-                <Search className="w-3.5 h-3.5 text-[var(--ink-muted)] mr-1.5" />
+          /* Table */
+          <div className="bg-white border border-[#eeeeee] overflow-hidden">
+            <div className="p-3 border-b border-[#eeeeee] flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex items-center bg-[#fafafa] border border-[#e5e5e5] rounded-xs px-2.5 py-1 w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 text-[#888888] mr-1.5" />
                 <input
                   type="text"
                   placeholder="Buscar..."
@@ -662,7 +655,7 @@ export default function AdminPage() {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-[var(--paper-bg)] border border-[var(--paper-border)] p-1 text-xs focus:outline-hidden rounded-xs"
+                className="bg-[#fafafa] border border-[#e5e5e5] p-1 text-xs focus:outline-hidden rounded-xs"
               >
                 <option value="Todas">Todas las categorías</option>
                 <option value="Historia">Historia</option>
@@ -673,11 +666,10 @@ export default function AdminPage() {
               </select>
             </div>
 
-            {/* List */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="bg-[var(--paper-subtle)]/50 border-b border-[var(--paper-border)] text-[var(--ink-muted)] uppercase tracking-wider font-semibold">
+                  <tr className="bg-[#fafafa] border-b border-[#eeeeee] text-[#888888] uppercase tracking-wider font-semibold">
                     <th className="p-3 w-16">Foto</th>
                     <th className="p-3">Título</th>
                     <th className="p-3">Categoría</th>
@@ -685,24 +677,24 @@ export default function AdminPage() {
                     <th className="p-3 text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--paper-border)]">
+                <tbody className="divide-y divide-[#eeeeee]">
                   {filteredList.map((art) => (
-                    <tr key={art.id} className="hover:bg-[var(--paper-subtle)]/20 transition-colors">
+                    <tr key={art.id} className="hover:bg-[#fafafa] transition-colors">
                       <td className="p-3">
                         <img src={art.coverImage} alt="" className="w-12 h-9 object-cover rounded-xs" />
                       </td>
                       <td className="p-3">
-                        <strong className="font-headline text-sm font-semibold text-[var(--ink-primary)] line-clamp-1">
+                        <strong className="font-headline text-sm font-semibold text-[#111111] line-clamp-1">
                           {art.title}
                         </strong>
-                        <p className="text-[11px] text-[var(--ink-muted)] line-clamp-1 italic">
+                        <p className="text-[11px] text-[#777777] line-clamp-1 italic">
                           {art.copete}
                         </p>
                       </td>
-                      <td className="p-3 text-[var(--ink-secondary)] whitespace-nowrap">
+                      <td className="p-3 text-[#555555] whitespace-nowrap">
                         {art.category}
                       </td>
-                      <td className="p-3 text-[var(--ink-secondary)] whitespace-nowrap">
+                      <td className="p-3 text-[#555555] whitespace-nowrap">
                         {art.author}
                       </td>
                       <td className="p-3 text-right whitespace-nowrap">
@@ -710,19 +702,19 @@ export default function AdminPage() {
                           <Link
                             href={`/noticia/${art.id}`}
                             target="_blank"
-                            className="p-1 text-[var(--ink-muted)] hover:text-[var(--ink-primary)]"
+                            className="p-1 text-[#888888] hover:text-[#111111]"
                           >
                             <Eye className="w-3.5 h-3.5" />
                           </Link>
                           <button
                             onClick={() => startEditArticle(art)}
-                            className="p-1 text-[var(--ink-muted)] hover:text-[var(--ink-primary)]"
+                            className="p-1 text-[#888888] hover:text-[#111111]"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => setDeleteConfirmId(art.id)}
-                            className="p-1 text-[var(--ink-accent)] hover:text-red-800"
+                            className="p-1 text-red-600 hover:text-red-800"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -734,8 +726,8 @@ export default function AdminPage() {
               </table>
 
               {filteredList.length === 0 && (
-                <div className="p-6 text-center text-xs text-[var(--ink-muted)]">
-                  No hay noticias para mostrar.
+                <div className="p-6 text-center text-xs text-[#888888]">
+                  No hay artículos que coincidan.
                 </div>
               )}
             </div>
@@ -745,24 +737,24 @@ export default function AdminPage() {
 
       {/* Delete modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="max-w-sm w-full bg-[var(--paper-card)] border border-[var(--paper-border)] p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="max-w-sm w-full bg-white border border-[#eeeeee] p-6 space-y-4">
             <h3 className="font-headline text-lg font-bold">
-              ¿Eliminar esta noticia?
+              ¿Eliminar este artículo?
             </h3>
-            <p className="text-xs text-[var(--ink-muted)]">
+            <p className="text-xs text-[#666666]">
               La noticia será retirada del blog.
             </p>
             <div className="flex justify-end gap-2 text-xs">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-3 py-1.5 bg-[var(--paper-subtle)] rounded-xs"
+                className="px-3 py-1.5 bg-[#f0f0f0] rounded-xs"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleDeleteConfirm}
-                className="px-3 py-1.5 bg-[var(--ink-accent)] text-white rounded-xs"
+                className="px-3 py-1.5 bg-red-600 text-white rounded-xs"
               >
                 Eliminar
               </button>
