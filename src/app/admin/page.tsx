@@ -111,11 +111,25 @@ export default function AdminPage() {
   };
 
   useEffect(() => {
-    const isAuth = checkAdminSession();
-    setIsAuthenticated(isAuth);
-    if (isAuth) {
-      loadData();
+    async function verifyAuth() {
+      try {
+        const res = await fetch('/api/admin/session');
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          loadData();
+          return;
+        }
+      } catch {
+        // fallback
+      }
+      const isAuth = checkAdminSession();
+      setIsAuthenticated(isAuth);
+      if (isAuth) {
+        loadData();
+      }
     }
+    verifyAuth();
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -136,19 +150,16 @@ export default function AdminPage() {
         setAuthError(data.error || 'Contraseña incorrecta.');
       }
     } catch {
-      // Offline / client fallback
-      if (passwordInput === 'Noticias2016!') {
-        setAdminSession(true, true);
-        setIsAuthenticated(true);
-        setAuthError('');
-        loadData();
-      } else {
-        setAuthError('Contraseña incorrecta.');
-      }
+      setAuthError('Error de conexión con el servidor de autenticación.');
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch {
+      // ignore
+    }
     setAdminSession(false);
     setIsAuthenticated(false);
     setIsEditing(false);
