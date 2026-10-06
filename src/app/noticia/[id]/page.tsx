@@ -137,8 +137,38 @@ export default function ArticleDetailPage() {
     .filter((a) => a.id !== article.id)
     .slice(0, 3);
 
+  // Schema.org NewsArticle structured data for Google Search
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.title,
+    description: article.copete,
+    image: [article.coverImage, ...(article.gallery?.map((g) => g.url) || [])],
+    datePublished: article.isoDate || new Date().toISOString(),
+    dateModified: new Date().toISOString(),
+    author: [
+      {
+        '@type': 'Person',
+        name: article.author,
+        jobTitle: article.authorRole || 'Redactor',
+      },
+    ],
+    publisher: {
+      '@type': 'NewsMediaOrganization',
+      name: 'Noticias de Ayer',
+      url: 'https://noticiasdeayer.vercel.app',
+    },
+    articleSection: article.category,
+    articleBody: article.content.join(' '),
+    keywords: article.tags?.join(', '),
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-white text-[#111111]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       <Header />
 
       <main className="grow max-w-3xl mx-auto px-4 py-10 sm:py-14 w-full">
