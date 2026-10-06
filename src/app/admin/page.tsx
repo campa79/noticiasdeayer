@@ -76,13 +76,13 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === 'ayer1970' || passwordInput === 'admin' || passwordInput === 'noticias') {
+    if (passwordInput === 'Noticias2016!') {
       setAdminSession(true, true);
       setIsAuthenticated(true);
       setAuthError('');
       setArticles(getStoredArticles());
     } else {
-      setAuthError('Contraseña incorrecta. (Demo: ayer1970)');
+      setAuthError('Contraseña incorrecta.');
     }
   };
 
@@ -309,16 +309,6 @@ export default function AdminPage() {
             >
               Ingresar
             </button>
-
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => setPasswordInput('ayer1970')}
-                className="text-[11px] text-[#888888] hover:underline"
-              >
-                (Demo: ayer1970)
-              </button>
-            </div>
           </form>
 
           <div className="mt-6 pt-4 border-t border-[#eeeeee] text-center">
