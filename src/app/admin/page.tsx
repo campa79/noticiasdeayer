@@ -118,15 +118,33 @@ export default function AdminPage() {
     }
   }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === 'Noticias2016!') {
-      setAdminSession(true, true);
-      setIsAuthenticated(true);
-      setAuthError('');
-      loadData();
-    } else {
-      setAuthError('Contraseña incorrecta.');
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAdminSession(true, true);
+        setIsAuthenticated(true);
+        setAuthError('');
+        loadData();
+      } else {
+        setAuthError(data.error || 'Contraseña incorrecta.');
+      }
+    } catch {
+      // Offline / client fallback
+      if (passwordInput === 'Noticias2016!') {
+        setAdminSession(true, true);
+        setIsAuthenticated(true);
+        setAuthError('');
+        loadData();
+      } else {
+        setAuthError('Contraseña incorrecta.');
+      }
     }
   };
 

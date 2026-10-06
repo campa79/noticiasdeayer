@@ -24,10 +24,6 @@ export default function Footer() {
               {cat}
             </Link>
           ))}
-          <Link href="/admin" className="hover:text-[#111111] transition-colors flex items-center gap-1 font-medium">
-            <Shield className="w-3 h-3" />
-            <span>Admin</span>
-          </Link>
         </div>
       </div>
     </footer>

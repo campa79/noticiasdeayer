@@ -38,18 +38,6 @@ export default function Header({
         <p className="font-body text-xs sm:text-sm text-[#777777] mt-2 italic tracking-wide">
           Diario de archivo y crónicas históricas
         </p>
-
-        {/* Minimal Admin Link */}
-        <div className="absolute right-4 top-10">
-          <Link
-            href="/admin"
-            className="inline-flex items-center gap-1 text-xs text-[#888888] hover:text-[#111111] transition-colors"
-            title="Panel de Administración"
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Admin</span>
-          </Link>
-        </div>
       </div>
 
       {/* Minimal Navigation & Search */}
